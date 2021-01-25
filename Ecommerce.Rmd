@@ -35,16 +35,36 @@ Aún asi, hay que destacar que el análisis más importante va a ser un modelo d
 ```{r}
 #Cargamos los datos:
 data <- read.csv("data.csv")
-summary(data)
+class(data$InvoiceDate)
 #A priori parace que solo tenemos problemas con la fecha de la factura que es leída como un string
 data <- data %>%
   mutate(
     ParsedDate = parse_datetime(InvoiceDate, format = "%m/%d/%Y %H:%M")
   )
+#Comprobamos que no haya NA en el fichero
+anyNA(data) #Tenemos NA
+summary(data) #Solo hay NA's en CustomerID
+#Sustituimos los NA por 0
 ```
 
-
 ### 3.Justifica para cada una de las variables de vuestro proyecto el tipo de dato que mejor se ajusta a cada una de ellas: numérico, ordinal, categórico…. Transforma cada variable al tipo adecuado de dato.
+
+- Nº de Factura: Es una variable categórica ordinal, ya que el orden si que es importante y su
+
+- Código de Stock:
+
+- Descripción: Es una variable categórica y la manera más comoda de usarla es mediante caracteres
+
+- Cantidad
+
+- Fecha de Factura
+
+- Precio por unidad
+
+- ID del comprador
+
+- País: Variable categórica y podría utilizarse un factor
+
 
 ## Parte 2: Análisis exploratorio (EDA). (30/100)
 
