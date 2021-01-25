@@ -1,5 +1,6 @@
-"0","summary(data)
-"
+"0","#Cargamos los datos:"
+"0","data <- read.csv(""data.csv"")"
+"0","summary(data)"
 "1",""
 "1","  InvoiceNo        "
 "1","  StockCode        "
@@ -98,3 +99,8 @@
 "1","                   "
 "1","
 "
+"0","#A priori parace que solo tenemos problemas con la fecha de la factura que es leída como un string"
+"0","data <- data %>%"
+"0","  mutate("
+"0","    ParsedDate = parse_datetime(InvoiceDate, format = ""%m/%d/%Y %H:%M"")"
+"0","  )"
