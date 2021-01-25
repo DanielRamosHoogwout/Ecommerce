@@ -1,0 +1,28 @@
+---
+title: "Ecommerce"
+author: "Daniel Ramos"
+date: "24/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Parte 1 Contexto del problema y modelo de datos (30/100)
+
+### 1.Contextualiza a partir de la información del origen de los datos de que disponemos. Qué datos contiene cada uno de los ficheros y para qué nos pueden resultar importantes en nuestro proyecto. Construir el modelo de datos para vuestro problema.
+
+### 2.Realiza la limpieza de datos, si es necesario, y validación de las variables (análisis de valores perdidos, valores nulos, valores aberrantes, datos fuera de rango…)
+
+### 3.Justifica para cada una de las variables de vuestro proyecto el tipo de dato que mejor se ajusta a cada una de ellas: numérico, ordinal, categórico…. Transforma cada variable al tipo adecuado de dato.
+
+## Parte 2: Análisis exploratorio (EDA). (30/100)
+
+### En las siguientes preguntas aplica todo lo que hemos visto acerca de la documentación en el EDA: Título de gráficos, etiquetas de los ejes, coloreado con información, leyendas, tablas bien presentadas (knitr)… Establece en dos o tres etapas un Análisis Exploratorio (EDA) global de estos datos que incluya algunos de estos aspectos:
+
+### Gráficos con ggplot2 de las v.a. discretas, continuas
+### Gráficos de dos variables segmentando una en función de otras, que tenga sentido. Por ejemplo continua versus factor.
+### Tablas de resumen de estadísticos globales.
+### Tablas de resumen de estadísticos por grupos.
+### Ampliación de alguna técnica de inferencia estadística.
