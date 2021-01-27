@@ -411,9 +411,61 @@ summary {
 </div>
 <div id="realiza-la-limpieza-de-datos-si-es-necesario-y-validación-de-las-variables-análisis-de-valores-perdidos-valores-nulos-valores-aberrantes-datos-fuera-de-rango" class="section level3">
 <h3>2.Realiza la limpieza de datos, si es necesario, y validación de las variables (análisis de valores perdidos, valores nulos, valores aberrantes, datos fuera de rango…)</h3>
+<pre class="r"><code>#Cargamos los datos:
+data &lt;- read.csv(&quot;data.csv&quot;)
+class(data$InvoiceDate)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<pre class="r"><code>#A priori parace que solo tenemos problemas con la fecha de la factura que es leída como un string
+data &lt;- data %&gt;%
+  mutate(
+    ParsedDate = parse_datetime(InvoiceDate, format = &quot;%m/%d/%Y %H:%M&quot;)
+  )
+#Comprobamos que no haya NA en el fichero
+anyNA(data) #Tenemos NA</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>summary(data) #Solo hay NA&#39;s en CustomerID</code></pre>
+<pre><code>##   InvoiceNo          StockCode         Description           Quantity        
+##  Length:541909      Length:541909      Length:541909      Min.   :-80995.00  
+##  Class :character   Class :character   Class :character   1st Qu.:     1.00  
+##  Mode  :character   Mode  :character   Mode  :character   Median :     3.00  
+##                                                           Mean   :     9.55  
+##                                                           3rd Qu.:    10.00  
+##                                                           Max.   : 80995.00  
+##                                                                              
+##  InvoiceDate          UnitPrice           CustomerID       Country         
+##  Length:541909      Min.   :-11062.06   Min.   :12346    Length:541909     
+##  Class :character   1st Qu.:     1.25   1st Qu.:13953    Class :character  
+##  Mode  :character   Median :     2.08   Median :15152    Mode  :character  
+##                     Mean   :     4.61   Mean   :15288                      
+##                     3rd Qu.:     4.13   3rd Qu.:16791                      
+##                     Max.   : 38970.00   Max.   :18287                      
+##                                         NA&#39;s   :135080                     
+##    ParsedDate                 
+##  Min.   :2010-12-01 08:26:00  
+##  1st Qu.:2011-03-28 11:34:00  
+##  Median :2011-07-19 17:17:00  
+##  Mean   :2011-07-04 13:34:57  
+##  3rd Qu.:2011-10-19 11:27:00  
+##  Max.   :2011-12-09 12:50:00  
+## </code></pre>
+<pre class="r"><code>#Sustituimos los NA por 0, son 135080 observaciones que pueden contener información interesante
+data$CustomerID &lt;- ifelse(is.na(data$CustomerID)== TRUE,0,data$CustomerID)
+#Si hay duplicados los eliminamos
+data &lt;- data %&gt;%
+  distinct()</code></pre>
 </div>
 <div id="justifica-para-cada-una-de-las-variables-de-vuestro-proyecto-el-tipo-de-dato-que-mejor-se-ajusta-a-cada-una-de-ellas-numérico-ordinal-categórico.-transforma-cada-variable-al-tipo-adecuado-de-dato." class="section level3">
 <h3>3.Justifica para cada una de las variables de vuestro proyecto el tipo de dato que mejor se ajusta a cada una de ellas: numérico, ordinal, categórico…. Transforma cada variable al tipo adecuado de dato.</h3>
+<ul>
+<li><p>Nº de Factura: Es una variable categórica ordinal, ya que el orden sí que es importante. Se mantendrá esta variable como una cadena de caracteres por una sencilla razón, no todas las facturas son númericas, hay algunas que empiezan por la letra C, que significan una cancelación.</p></li>
+<li><p>Código de Stock: Es una variable categórica, ya que tiene un valor finito, pero la mantendremos como un string ya que tiene valores alfanúmericos y son muchos productos diferentes.</p></li>
+<li><p>Descripción: Es una variable categórica única para cada producto y la manera más comoda de usarla es mediante caracteres ya que son muchos productos.</p></li>
+<li><p>Cantidad: Es una variable númerica y la mantendremos como un entero.</p></li>
+<li><p>Fecha de Factura: Es una variable ordinal, ya que el orden es importante y tiene un rango de valores finito, aún asi se ha parseado la varible para que R puede interpretarla en formato fecha.</p></li>
+<li><p>Precio por unidad: Es una variable númerica.</p></li>
+<li><p>ID del comprador: Esta variable es una variable categorica que representa a cada comprador, pero por comodidad para el análisis la dejaremos como variable númerica.</p></li>
+<li><p>País: Variable categórica que representa a cada país y podría utilizarse un factor.</p></li>
+</ul>
 </div>
 </div>
 <div id="parte-2-análisis-exploratorio-eda.-30100" class="section level2">

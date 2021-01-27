@@ -1,0 +1,6 @@
+"0","#Añadimos una columna con el dia del año
+data$day <- day(data$ParsedDate, label=TRUE)
+"
+"2","Error in day(data$ParsedDate, label = TRUE) : 
+  unused argument (label = TRUE)
+"

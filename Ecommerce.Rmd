@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(lubridate)
+
 ```
 
 ## Parte 1 Contexto del problema y modelo de datos (30/100)
@@ -44,32 +46,112 @@ data <- data %>%
 #Comprobamos que no haya NA en el fichero
 anyNA(data) #Tenemos NA
 summary(data) #Solo hay NA's en CustomerID
-#Sustituimos los NA por 0
+
+#Borramos todos los precios y cantidades negativas
+data <- data %>% 
+  mutate(Quantity = replace(Quantity, Quantity<=0, NA),
+         UnitPrice = replace(UnitPrice, UnitPrice<=0, NA))
+#Borramos los NA
+data <- data %>%
+  drop_na()
+
+#Sustituimos los NA por 0, son 135080 observaciones que pueden contener información interesante
+#data$CustomerID <- ifelse(is.na(data$CustomerID)== TRUE,0,data$CustomerID)
+#Si hay duplicados los eliminamos con la función de dplyr
+data <- data %>%
+  distinct()
+
+#Añadimos una columna con el precio total de cada venta:
+data <- data %>% mutate(lineTotal = Quantity * UnitPrice)
+
+#Añadimos una columna con el dia de la semana
+data$weekDay <- wday(data$ParsedDate, label=TRUE)
+#Como la etiquetas que genera automáticamente son horribles vamos a renombrarlas
+levels(data$weekDay) <- c("Dom","Lun","Mar","Mie","Jue","Vie","Sab")
+
+#Añadimos una columna con el mes del año
+data$month <- month(data$ParsedDate, label = TRUE)
 ```
 
 ### 3.Justifica para cada una de las variables de vuestro proyecto el tipo de dato que mejor se ajusta a cada una de ellas: numérico, ordinal, categórico…. Transforma cada variable al tipo adecuado de dato.
 
-- Nº de Factura: Es una variable categórica ordinal, ya que el orden si que es importante y su
+- Nº de Factura: Es una variable categórica ordinal, ya que el orden sí que es importante. Se mantendrá esta variable como una cadena de caracteres por una sencilla razón, no todas las facturas son númericas, hay algunas que empiezan por la letra C, que significan una cancelación.
 
-- Código de Stock:
+- Código de Stock: Es una variable categórica, ya que tiene un valor finito, pero la mantendremos como un string ya que tiene valores alfanúmericos y son muchos productos diferentes.
 
-- Descripción: Es una variable categórica y la manera más comoda de usarla es mediante caracteres
+- Descripción: Es una variable categórica única para cada producto y la manera más comoda de usarla es mediante caracteres ya que son muchos productos.
 
-- Cantidad
+- Cantidad: Es una variable númerica y la mantendremos como un entero.
 
-- Fecha de Factura
+- Fecha de Factura: Es una variable ordinal, ya que el orden es importante y tiene un rango de valores finito, aún asi se ha parseado la varible para que R puede interpretarla en formato fecha.
 
-- Precio por unidad
+- Precio por unidad: Es una variable númerica.
 
-- ID del comprador
+- ID del comprador: Esta variable es una variable categorica que representa a cada comprador, pero por comodidad para el análisis la dejaremos como variable númerica.
 
-- País: Variable categórica y podría utilizarse un factor
+- País: Variable categórica que representa a cada país y podría utilizarse un factor.
 
 
 ## Parte 2: Análisis exploratorio (EDA). (30/100)
 
 ### En las siguientes preguntas aplica todo lo que hemos visto acerca de la documentación en el EDA: Título de gráficos, etiquetas de los ejes, coloreado con información, leyendas, tablas bien presentadas (knitr)… Establece en dos o tres etapas un Análisis Exploratorio (EDA) global de estos datos que incluya algunos de estos aspectos:
 
+Producto estrella, país donde más se vende, cliente estrella, epoca del año en la que se vende más, cantidad total vendida en ese periodo y "beneficio", número de cancelaciones...
+
+#### Estadísticas generales sobre la cantidad de productos que tenemos:
+```{r}
+data %>%
+  group_by(StockCode) %>%
+  summarise(count = n(),
+            sum_quantity = sum(Quantity),
+            mean_quantity = round(mean(Quantity), 2),
+            median_quantity = median(Quantity),
+            mode_quantity = unique(Quantity)[which.max(tabulate(match(Quantity, unique(Quantity))))],
+            sd_quantity = round(sd(Quantity), 2))
+```
+
+#### 10 Productos más vendidos:
+```{r}
+#Observamos la cantidad total vendida de cada producto
+sales <- data %>%
+  group_by(StockCode) %>%
+  summarise(Total = sum(Quantity))
+
+#Ordenamos de mayor a menor
+sales <- sales[
+  with(sales, order(-Total)),
+]
+sales %>% top_n(10) %>%
+  ggplot(aes(x = StockCode, y = Total)) + 
+  geom_col() + 
+  labs(x = 'Código Stock', y = 'Cantidad', title = 'Cantidad vendida de los top 10')
+  
+```
+
+#### Productos menos vendidos:
+```{r}
+#Tenemos muchos productos que se han vendido solo una vez
+sum(sales$Total == 1) #En concreto 52
+#Quizás lo mejor sería eliminar estos productos del Stock
+```
+
+#### Dia de la semana que más se vende
+```{r}
+data %>%
+  group_by(weekDay) %>%
+  summarise(revenue = sum(lineTotal)) %>%
+  ggplot(aes(x = weekDay, y = revenue)) + geom_col() + labs(x = 'Dia de la semana', y = 'Beneficio (£)', title = 'Beneficio por dia de la semana')
+```
+Se observa algo curioso, los jueves son el día que más se vende mientra que los domingos es el dia que menos.
+
+#### Época del año en que más se vende
+```{r}
+data %>%
+  group_by(month) %>%
+  summarise(revenue = sum(lineTotal)) %>%
+  ggplot(aes(x = month, y = revenue)) + geom_col() + labs(x = 'Mes', y = 'Beneficio (£)', title = 'Beneficio por mes')
+```
+Observamos claramente que en el último cuatrimestre del año se vende mucho más que el resto.
 ### Gráficos con ggplot2 de las v.a. discretas, continuas
 ### Gráficos de dos variables segmentando una en función de otras, que tenga sentido. Por ejemplo continua versus factor.
 ### Tablas de resumen de estadísticos globales.
