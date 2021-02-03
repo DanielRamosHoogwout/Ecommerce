@@ -163,7 +163,7 @@ totalStats %>% formattable(align = c("c", "c", "c", "c", "c", "c"),
 data %>%
   group_by(weekDay) %>%
   summarise(revenue = sum(lineTotal)) %>%
-  ggplot(aes(x = weekDay, y = revenue)) + geom_col() + labs(x = 'Dia de la semana', y = 'Beneficio (£)', title = 'Beneficio por dia de la semana')
+  ggplot(aes(x = weekDay, y = revenue)) + geom_col(fill='darkblue') + labs(x = 'Dia de la semana', y = 'Beneficio (£)', title = 'Beneficio por dia de la semana')
 ```
 Se observa algo curioso, los jueves son el día que más se vende mientra que los domingos es el dia que menos.
 
@@ -172,16 +172,32 @@ Se observa algo curioso, los jueves son el día que más se vende mientra que lo
 data %>%
   group_by(month) %>%
   summarise(revenue = sum(lineTotal)) %>%
-  ggplot(aes(x = month, y = revenue)) + geom_col() + labs(x = 'Mes', y = 'Beneficio (£)', title = 'Beneficio por mes')
+  ggplot(aes(x = month, y = revenue)) + geom_col(fill='darkblue') + labs(x = 'Mes', y = 'Beneficio (£)', title = 'Beneficio por mes')
 ```
 
 Observamos claramente que en el último cuatrimestre del año se vende mucho más que el resto.
 
 #### Mapa de calor con los países
 ```{r}
+#Mapa regiones vendidas
+country <- data %>%
+  group_by(Country) %>%
+  summarise(SalesVolume = sum(Quantity)) %>%
+  rename(region = Country)
+
+country$region <- ifelse(country$region == "United Kingdom", "UK",country$region)
+country$region <- ifelse(country$region == "EIRE", "Ireland",country$region)
+
+world_map <- map_data("world")
+salesmap <- full_join(country, world_map, by = "region")
+ggplot(salesmap, aes(map_id = region, fill = SalesVolume))+
+  geom_map(map = salesmap,  color = "white")+
+  expand_limits(x = salesmap$long, y = salesmap$lat)+
+  scale_fill_viridis_c(option = "C")
+
 #Tabla proporciones por pais
 #Tabla absolutos
-#Mapa regiones vendidas
+
 
 ```
 

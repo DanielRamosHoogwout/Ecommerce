@@ -3,7 +3,7 @@
     "path": "~/Github/Ecommerce/Ecommerce.Rmd",
     "project_path": "Ecommerce.Rmd",
     "type": "r_markdown",
-    "hash": "3138699195",
+    "hash": "4199699622",
     "contents": "",
     "dirty": false,
     "created": 1611503790632.0,
@@ -11,16 +11,16 @@
     "relative_order": 1,
     "properties": {
         "tempName": "Untitled1",
-        "cursorPosition": "157,0",
-        "scrollLine": "158",
-        "last_setup_crc32": ""
+        "cursorPosition": "195,36",
+        "scrollLine": "182",
+        "last_setup_crc32": "2E146ABFf12a24c8"
     },
     "folds": "",
-    "lastKnownWriteTime": 1611834014,
+    "lastKnownWriteTime": 1612355298,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1611834015041,
+    "last_content_update": 1612355298839,
     "read_only": false,
     "read_only_alternatives": []
 }

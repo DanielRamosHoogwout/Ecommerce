@@ -1,0 +1,32 @@
+{
+    "id": "E3BB73ED",
+    "path": null,
+    "project_path": null,
+    "type": "r_dataframe",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1612353955955.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "expression": "salesmap",
+        "caption": "salesmap",
+        "totalObservations": "31888",
+        "displayedObservations": "31888",
+        "variables": "7",
+        "cacheKey": "D3E7D9A5",
+        "object": "salesmap",
+        "environment": "",
+        "contentUrl": "grid_resource/gridviewer.html?env=&obj=salesmap&cache_key=D3E7D9A5&max_cols=50",
+        "preview": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 2183466410320,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1612353955955,
+    "read_only": false,
+    "read_only_alternatives": []
+}
