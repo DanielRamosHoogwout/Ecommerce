@@ -1,7 +1,0 @@
-"0","data %>%
-  group_by(weekDay) %>%
-  summarise(revenue = sum(lineTotal)) %>%
-  ggplot(aes(x = weekDay, y = revenue)) + geom_col(fill='darkblue') + labs(x = 'Dia de la semana', y = 'Beneficio (£)', title = 'Beneficio por dia de la semana')
-"
-"2","`summarise()` ungrouping output (override with `.groups` argument)
-"

@@ -188,15 +188,31 @@ country <- data %>%
 country$region <- ifelse(country$region == "United Kingdom", "UK",country$region)
 country$region <- ifelse(country$region == "EIRE", "Ireland",country$region)
 
+#Como las ventas en UK son mucho mayores que en el resto de paises aplicamos logaritmos
+country <- country %>%
+  mutate(logVolume = log(SalesVolume),
+         Proportion = (SalesVolume/sum(SalesVolume))*100)
+
+country$Proportion <- round(country$Proportion,2)
+
 world_map <- map_data("world")
 salesmap <- full_join(country, world_map, by = "region")
-ggplot(salesmap, aes(map_id = region, fill = SalesVolume))+
+ggplot(salesmap, aes(map_id = region, fill = logVolume))+
   geom_map(map = salesmap,  color = "white")+
   expand_limits(x = salesmap$long, y = salesmap$lat)+
   scale_fill_viridis_c(option = "C")
 
-#Tabla proporciones por pais
-#Tabla absolutos
+#Tabla ventas por paises y proporción
+country %>%
+  select(region,SalesVolume,Proportion) %>%
+  arrange(desc(Proportion)) %>%
+  formattable(align = c("l", "c", "c"),
+              list(SalesVolume = color_bar("lightgrey"),
+                   Proportion = 
+                     formatter("span", style = ~ style(font.weight = "bold"))),
+              col.names = c("País","Volumen Ventas", "Proporción"))
+
+
 
 
 ```
@@ -207,3 +223,16 @@ ggplot(salesmap, aes(map_id = region, fill = SalesVolume))+
 ### Tablas de resumen de estadísticos globales.
 ### Tablas de resumen de estadísticos por grupos.
 ### Ampliación de alguna técnica de inferencia estadística.
+
+
+## Parte 3: Aprendizaje estadístico (Machine Learning) (40/100)
+En esta última parte aplica algunas de las técnicas de Machine Learning que hemos visto.
+
+En cada caso de machine learning, si es necesario, divídelos en conjuntos de datos de training y de testing.
+
+Sobre todo desde el punto de vista de la parte de la tecnología de aplicación.
+
+### Para alguna de las variables continuas, aplica al menos dos de los algoritmos de regresión. Se valorará tener el modelo, su explicación, así como una representación gráfica del resultado.
+### Para alguna de las variables discretas, aplica al menos dos de los algoritmos de clasificación. Se valorará tener el modelo, su explicación, así como una representación gráfica del resultado.
+### Reduce la dimensión de tu dataset con LDA o PCA (puede resultar interesante para reducir el número de variables a 2 o 3 para así representarlo en uno, dos o tres gráficos del plano).
+### Crea un clustering por k-means o jerárquico utilizando como entrada resultado de la reducción de la dimensión anterior, para segmentar las observaciones en un número de grupos. Se valorará tener el modelo, su explicación, así como una representación gráfica del resultado.
