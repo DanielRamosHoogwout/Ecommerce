@@ -1,0 +1,53 @@
+##Principal Components
+rm(list = ls())
+USArrests
+states=row.names(USArrests)
+states
+names(USArrests)
+apply(USArrests, 2, mean)
+apply(USArrests, 2, var)
+pr.out=prcomp(USArrests, scale=TRUE) #Calcula componentes principales y las estandariza
+names(pr.out)
+#pr.out$sdev desviacion estandart de cada una de las componentes principales
+pr.out$center # Vector de medias para standarizar
+pr.out$scale #Desviaciones stantart para la standarizacion 
+pr.out$rotation #Las cargas: Vectores propios de matriz de varianzas y covarianzas
+dim(pr.out$x) # x son las proyecciones
+biplot(pr.out, scale=0)
+pr.out$rotation=-pr.out$rotation #cambiamos el sentido de la rotacion
+pr.out$x=-pr.out$x #lo mismo que antes
+biplot(pr.out, scale=0) #Hemos girado el grafico
+pr.out$sdev
+pr.var=pr.out$sdev^2
+pr.var
+pve=pr.var/sum(pr.var)
+pve
+plot(pve, xlab="Principal Component", ylab="Proportion of Variance Explained", ylim=c(0,1),type='b')
+plot(cumsum(pve), xlab="Principal Component", ylab="Cumulative Proportion of Variance Explained", ylim=c(0,1),type='b')
+a=c(1,2,8,-3)
+cumsum(a)
+install.packages("ggplot2")
+library(ggplot2)
+biplot(pr.out, expand=10, xlim=c(-0.30, 0.0), ylim=c(-0.1, 0.1))
+PCbiplot <- function(PC, x="PC1", y="PC2", colors=c('black', 'black', 'red', 'red')) {
+  # PC being a prcomp object
+  data <- data.frame(obsnames=row.names(PC$x), PC$x)
+  plot <- ggplot(data, aes_string(x=x, y=y)) + geom_text(alpha=.4, size=3, aes(label=obsnames), color=colors[1])
+  plot <- plot + geom_hline(yintercept = 0,aes(0), size=.2) + geom_vline(aes(0), size=.2, color=colors[2], xintercept = 0)
+  datapc <- data.frame(varnames=rownames(PC$rotation), PC$rotation)
+  mult <- min(
+    (max(data[,y]) - min(data[,y])/(max(datapc[,y])-min(datapc[,y]))),
+    (max(data[,x]) - min(data[,x])/(max(datapc[,x])-min(datapc[,x])))
+  )
+  datapc <- transform(datapc,
+                      v1 = .7 * mult * (get(x)),
+                      v2 = .7 * mult * (get(y))
+  )
+  plot <- plot + coord_equal() + geom_text(data=datapc, aes(x=v1, y=v2, label=varnames), size = 5, vjust=1, color=colors[3])
+  plot <- plot + geom_segment(data=datapc, aes(x=0, y=0, xend=v1, yend=v2), arrow=arrow(length=unit(0.2,"cm")), alpha=0.75, color=colors[4])
+  plot
+}
+fit <- prcomp(USArrests, scale=T)
+PCbiplot(fit, colors=c("black", "black", "red", "yellow"))
+
+PCbiplot(pr.out, colors=c("black", "black", "red", "yellow"))

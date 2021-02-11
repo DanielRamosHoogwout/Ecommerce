@@ -1,7 +1,0 @@
-"0","# #Seleccionamos las columnas que nos interesan"
-"0","# r_data <- data %>%"
-"0","#   select(CustomerID, Quantity, UnitPrice, Country)"
-"0","# onehot <- one_hot(as.data.table(r_data))"
-"0","# pr.out <- prcomp(onehot[,-1], scale = TRUE)"
-"0","# pr.out$rotation"
-"0","# biplot(pr.out, scale=0)"

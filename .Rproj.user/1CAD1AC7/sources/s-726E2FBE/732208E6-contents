@@ -225,6 +225,30 @@ country %>%
 
 ```
 Se ha aplicado el logaritmo de las ventas porque como se puede observar en la tablas la mayoría de venta son en el mismo país, Reino Unido. Luego se vende en el resto de paises en menor medida pero se puede ver una clara diferencia una vez aplicados los logaritmos.
+
+#### Regresión lineal
+
+Vamos a observar si podemos linealizar el precio final de la cesta a partir de el precio y la cantidad del producto.
+```{r}
+rl_data <- data %>%
+  select(lineTotal, Quantity, UnitPrice)
+
+fit1 <- lm(lineTotal ~., data = rl_data)
+fit1 #El coeficiente tiene el signo esperado (Positivo)
+summary(fit1)
+```
+
+Por tanto nos queda un regresión lineal:
+
+$lineTotal = -1.81\beta_0+1.58Quantity+1.20UnitPrice$
+
+Con un $R^2_a$ = 0.84, asi que el modelo ajusta muy bien.
+
+Un intervalo de confianza del 90% seria:
+```{r}
+confint(fit1, level = 0.9)
+```
+
 ### Gráficos con ggplot2 de las v.a. discretas, continuas
 ### Gráficos de dos variables segmentando una en función de otras, que tenga sentido. Por ejemplo continua versus factor.
 ### Tablas de resumen de estadísticos globales.
@@ -239,18 +263,68 @@ En cada caso de machine learning, si es necesario, divídelos en conjuntos de da
 
 Sobre todo desde el punto de vista de la parte de la tecnología de aplicación.
 
-#### Reducción de la dimensión del dataset.
+#### Regresión lineal
 
-En el dataset hay datos que no son utiles a la hora de explicar nada. Por tanto vamos seleccionar solo variables relevantes:
+Comenzamos haciendo un regresión lineal simple:
 ```{r}
-# #Seleccionamos las columnas que nos interesan
-# r_data <- data %>%
-#   select(CustomerID, Quantity, UnitPrice, Country)
-# onehot <- one_hot(as.data.table(r_data))
-# pr.out <- prcomp(onehot[,-1], scale = TRUE)
-# pr.out$rotation
-# biplot(pr.out, scale=0)
+rl_data <- data %>%
+  select(lineTotal, Quantity, UnitPrice, Country)
+
+fit1 <- lm(lineTotal ~ Quantity, data = rl_data)
+summary(fit1)
+plot(rl_data$Quantity, rl_data$lineTotal) +
+abline(fit1)
+
 ```
+Nos queda la siguiente regresión lineal simple:
+$lineTotal = 1.95\beta_0+1.58Quantity$
+
+Con un $R^2_a$ = 0.84, asi que el modelo ajusta muy bien.
+Aparte de que todas las variables explicativas tienen un p-valor excelente.
+
+
+Vamos a ampliar el modelo para observar si podemos linealizar el precio final de la cesta a partir de el precio y la cantidad del producto.
+```{r}
+fit2 <- lm(lineTotal ~. -Country, data = rl_data)
+summary(fit2) #El coeficiente tiene el signo esperado (Positivo)
+```
+
+Por tanto nos queda un regresión lineal:
+
+$lineTotal = -1.81\beta_0+1.58Quantity+1.20UnitPrice$
+
+Con un $R^2_a$ = 0.84, asi que el modelo ajusta muy bien.
+Aparte de que todas las variables explicativas tienen un p-valor excelente.
+
+Un intervalo de confianza del 90% seria:
+```{r}
+confint(fit2, level = 0.9)
+```
+
+#### Análisis de componentes principales
+
+Vamos a coger recoger la información del ecommerce por paises e intentar reducir su dimensión, eliminamos Reino Unido ya que es un outlier y desproporcionaria los datos:
+```{r}
+paises <- data %>%
+  select(Country, Quantity, UnitPrice, lineTotal) %>%
+  group_by(Country) %>%
+  summarise(Quantity = sum(Quantity),
+            UnitPrice = sum(UnitPrice),
+            lineTotal = sum(lineTotal))
+
+pr.out <- prcomp(paises[-32,-1], scale = TRUE)
+pr.out$rotation
+biplot(pr.out, scale=1)
+
+#Seleccionamos el número de componentes
+pr.out$sdev
+#Con el criterio de la varianza, nos quedariamos con una sola componente
+screeplot(pr.out, type = "l", main = "Varianzas de los Componentes Principales",
+          col = "blue", cex.main = 0.8)
+#En cambio con la regla del codo, cogeriamos 2 componentes principales
+
+```
+
 
 
 
@@ -259,27 +333,7 @@ En el dataset hay datos que no son utiles a la hora de explicar nada. Por tanto 
 ### Reduce la dimensión de tu dataset con LDA o PCA (puede resultar interesante para reducir el número de variables a 2 o 3 para así representarlo en uno, dos o tres gráficos del plano).
 ### Crea un clustering por k-means o jerárquico utilizando como entrada resultado de la reducción de la dimensión anterior, para segmentar las observaciones en un número de grupos. Se valorará tener el modelo, su explicación, así como una representación gráfica del resultado.
 
-#### Regresión lineal
 
-Vamos a observar si podemos linealizar el precio final de la cesta a partir de el precio y la cantidad del producto.
-```{r}
-rl_data <- data %>%
-  select(lineTotal, Quantity, UnitPrice)
-
-fit1 <- lm(lineTotal ~., data = rl_data)
-fit1 #El coeficiente tiene el signo esperado (Positivo)
-summary(fit1)
-```
-Por tanto nos queda un regresión lineal:
-
-$lineTotal = -1.81\beta_0+1.58Quantity+1.20UnitPrice$
-
-Con un $R^2_a$ = 0.84, asi que el modelo ajusta muy bien.
-
-Un intervalo de confianza del 90% seria:
-```{r}
-confint(fit1, level = 0.9)
-```
 
 
 
