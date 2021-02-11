@@ -13,6 +13,7 @@ library(formattable)
 library(mltools)
 library(arules)
 library(arulesViz)
+library(ggplot2)
 ```
 
 ## Parte 1 Contexto del problema y modelo de datos (30/100)
@@ -260,10 +261,26 @@ En el dataset hay datos que no son utiles a la hora de explicar nada. Por tanto 
 
 #### Regresión lineal
 
+Vamos a observar si podemos linealizar el precio final de la cesta a partir de el precio y la cantidad del producto.
 ```{r}
 rl_data <- data %>%
-  select()
+  select(lineTotal, Quantity, UnitPrice)
+
+fit1 <- lm(lineTotal ~., data = rl_data)
+fit1 #El coeficiente tiene el signo esperado (Positivo)
+summary(fit1)
 ```
+Por tanto nos queda un regresión lineal:
+
+$lineTotal = -1.81\beta_0+1.58Quantity+1.20UnitPrice$
+
+Con un $R^2_a$ = 0.84, asi que el modelo ajusta muy bien.
+
+Un intervalo de confianza del 90% seria:
+```{r}
+confint(fit1, level = 0.9)
+```
+
 
 
 #### Reglas de asociación
