@@ -301,9 +301,15 @@ Un intervalo de confianza del 90% seria:
 confint(fit2, level = 0.9)
 ```
 
+Comprobamos si ampliar el modelo es realmente beneficioso haciendo un contraste de significación conjunto:
+```{r}
+anova(fit1,fit2)
+```
+Rechazamos hipótesis nula por tanto el modelo ampliado es mejor.
+
 #### Análisis de componentes principales
 
-Vamos a coger recoger la información del ecommerce por paises e intentar reducir su dimensión, eliminamos Reino Unido ya que es un outlier y desproporcionaria los datos:
+Vamos a coger recoger la información del ecommerce por paises e intentar reducir su dimensión:
 ```{r}
 paises <- data %>%
   select(Country, Quantity, UnitPrice, lineTotal) %>%
@@ -312,9 +318,8 @@ paises <- data %>%
             UnitPrice = sum(UnitPrice),
             lineTotal = sum(lineTotal))
 
-pr.out <- prcomp(paises[-32,-1], scale = TRUE)
+pr.out <- prcomp(paises[,-1], scale = TRUE)
 pr.out$rotation
-biplot(pr.out, scale=1)
 
 #Seleccionamos el número de componentes
 pr.out$sdev
@@ -322,7 +327,11 @@ pr.out$sdev
 screeplot(pr.out, type = "l", main = "Varianzas de los Componentes Principales",
           col = "blue", cex.main = 0.8)
 #En cambio con la regla del codo, cogeriamos 2 componentes principales
+```
 
+Nos quedamos con 2 componentes principales siguiendo la regla del codo y las representamos mediante un biplot:
+```{r}
+biplot(pr.out, scale=1)
 ```
 
 
