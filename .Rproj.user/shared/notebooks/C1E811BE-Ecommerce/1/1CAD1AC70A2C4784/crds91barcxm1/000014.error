@@ -1,0 +1,1 @@
+{"frames":[{"func":"biplot(pr.out.2, scale = 0)","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"Error in biplot(pr.out.2, scale = 0) : objeto 'pr.out.2' no encontrado\n"}

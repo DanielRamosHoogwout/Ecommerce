@@ -1,0 +1,6 @@
+"0","data %>%"
+"0","  group_by(month) %>%"
+"0","  summarise(revenue = sum(lineTotal)) %>%"
+"0","  ggplot(aes(x = month, y = revenue)) + geom_col(fill='darkblue') + labs(x = 'Mes', y = 'Beneficio (£)', title = 'Beneficio por mes')"
+"2","`summarise()` ungrouping output (override with `.groups` argument)
+"

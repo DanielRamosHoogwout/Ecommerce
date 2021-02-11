@@ -1,0 +1,4 @@
+"0","biplot(pr.out.2, scale=0)
+"
+"2","Error in biplot(pr.out.2, scale = 0) : objeto 'pr.out.2' no encontrado
+"
