@@ -362,7 +362,7 @@ set.seed(2021)
 kmeans <- kmeans(km_data, 2, iter.max = 300, nstart = 10)
 clusplot(km_data,kmeans$cluster, lines = 0, shade = T, color = T, labels = 2, plotchar = F, span = T, main = "Clustering por paises", xlab= "Cantidad vendida", ylab = "Precio por unidad total")
 ```
-Observamos que hay dos clusters de paises, el primer cluster incluye paises como: Australia, Irlanda, Francia, Alemania y Holanda. Básicamente paises vecinos (menos Australia) con los que es sencillo tener relaciones comerciales por su próximidad.
+Observamos que hay dos clusters de paises, el primer cluster incluye paises como: Australia, Irlanda, Francia, Alemania y Holanda. Básicamente paises vecinos (menos Australia) con los que tiene más volumen de ventas, es consistente con las tablas de volumen de ventas mostradas con anterioridad.
 
 #### Reglas de asociación
 
