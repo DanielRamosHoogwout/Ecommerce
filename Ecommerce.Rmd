@@ -2,7 +2,13 @@
 title: "Ecommerce"
 author: "Daniel Ramos"
 date: "24/1/2021"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_depth: 5
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
 ---
 
 ```{r setup, include=FALSE}
@@ -14,11 +20,12 @@ library(mltools)
 library(arules)
 library(arulesViz)
 library(ggplot2)
+library(cluster)
 ```
 
 ## Parte 1 Contexto del problema y modelo de datos (30/100)
 
-### 1.Contextualiza a partir de la información del origen de los datos de que disponemos. Qué datos contiene cada uno de los ficheros y para qué nos pueden resultar importantes en nuestro proyecto. Construir el modelo de datos para vuestro problema.
+### 1.Contextualización
 
 El fichero del cual se extraen los datos es data.csv, el cual contiene la información de las transacciones de un comerciante al por menor de Reino Unido.
 El fichero esta compuesto por 8 columnas y más de medio millón de filas.
@@ -37,7 +44,7 @@ Las columnas son las siguentes:
 Con los siguientes datos se va a recoger una serie datos como, por ejemplo, el producto estrella, la época del año en que más se vende, el pedido más grande...
 Aún asi, hay que destacar que el análisis más importante va a ser un modelo de predicción mediantes series temporales para predecir el stock de este Ecommerce, es bien conocida la importancia del buen manejo del stock para optimizar los recursos de la empresa y obtener el máximo de beneficio posible teniendo siempre la máxima disponibilidad de productos. 
 
-### 2.Realiza la limpieza de datos, si es necesario, y validación de las variables (análisis de valores perdidos, valores nulos, valores aberrantes, datos fuera de rango…)
+### 2. Limpieza de datos
 ```{r}
 #Cargamos los datos:
 data <- read.csv("data.csv")
@@ -80,7 +87,7 @@ data$month <- month(data$ParsedDate, label = TRUE)
 data$Country <- as.factor(data$Country)
 ```
 
-### 3.Justifica para cada una de las variables de vuestro proyecto el tipo de dato que mejor se ajusta a cada una de ellas: numérico, ordinal, categórico…. Transforma cada variable al tipo adecuado de dato.
+### 3.Justificación del tipo de variables
 
 - Nº de Factura: Es una variable categórica ordinal, ya que el orden sí que es importante. Se mantendrá esta variable como una cadena de caracteres por una sencilla razón, no todas las facturas son númericas, hay algunas que empiezan por la letra C, que significan una cancelación.
 
@@ -100,10 +107,6 @@ data$Country <- as.factor(data$Country)
 
 
 ## Parte 2: Análisis exploratorio (EDA). (30/100)
-
-### En las siguientes preguntas aplica todo lo que hemos visto acerca de la documentación en el EDA: Título de gráficos, etiquetas de los ejes, coloreado con información, leyendas, tablas bien presentadas (knitr)… Establece en dos o tres etapas un Análisis Exploratorio (EDA) global de estos datos que incluya algunos de estos aspectos:
-
-Producto estrella, país donde más se vende, cliente estrella, epoca del año en la que se vende más, cantidad total vendida en ese periodo y "beneficio", número de cancelaciones...
 
 #### Estadísticas generales sobre la cantidad de productos que vendemos:
 ```{r}
@@ -249,13 +252,6 @@ Un intervalo de confianza del 90% seria:
 confint(fit1, level = 0.9)
 ```
 
-### Gráficos con ggplot2 de las v.a. discretas, continuas
-### Gráficos de dos variables segmentando una en función de otras, que tenga sentido. Por ejemplo continua versus factor.
-### Tablas de resumen de estadísticos globales.
-### Tablas de resumen de estadísticos por grupos.
-### Ampliación de alguna técnica de inferencia estadística.
-
-
 ## Parte 3: Aprendizaje estadístico (Machine Learning) (40/100)
 En esta última parte aplica algunas de las técnicas de Machine Learning que hemos visto.
 
@@ -307,6 +303,10 @@ anova(fit1,fit2)
 ```
 Rechazamos hipótesis nula por tanto el modelo ampliado es mejor.
 
+#### Algoritmos de clasificación
+
+
+
 #### Análisis de componentes principales
 
 Vamos a coger recoger la información del ecommerce por paises e intentar reducir su dimensión:
@@ -334,17 +334,31 @@ Nos quedamos con 2 componentes principales siguiendo la regla del codo y las rep
 biplot(pr.out, scale=1)
 ```
 
+#### Clustering por k-means
 
+Vamos aplicar clustering para ver si podemos segmentar los datos en distintos grupos. Utilizamos los mismos datos que hemos utilizado en el apartado anterior. Pero eliminamos la observación referente a Reino Unido, si no Reino Unido estaria en un solo cluster y el resto de paises en otro.
+```{r}
+km_data <- paises[-35,2:3]
 
+#Método del codo
+set.seed(2021)
+wcss = vector()
+for(i in 1:10){
+  wcss[i] <- sum(kmeans(km_data, i)$withinss)
+}
+plot(1:10, wcss, type = 'b', main= "Método del codo", xlab= "Número de clusters", ylab="WCSS")
+```
 
-### Para alguna de las variables continuas, aplica al menos dos de los algoritmos de regresión. Se valorará tener el modelo, su explicación, así como una representación gráfica del resultado.
+Por tanto, el número óptimo de clusters para este algoritmo serian 2
+
+```{r}
+set.seed(2021)
+kmeans <- kmeans(km_data, 2, iter.max = 300, nstart = 10)
+clusplot(km_data,kmeans$cluster, lines = 0, shade = T, color = T, labels = 2, plotchar = F, span = T, main = "Clustering por paises", xlab= "Cantidad vendida", ylab = "Precio por unidad total")
+```
+Observamos que hay dos clusters de paises, el primer cluster incluye paises como: Australia, Irlanda, Francia, Alemania y Holanda. Básicamente paises vecinos (menos Australia) con los que es sencillo tener relaciones comerciales por su próximidad.
+
 ### Para alguna de las variables discretas, aplica al menos dos de los algoritmos de clasificación. Se valorará tener el modelo, su explicación, así como una representación gráfica del resultado.
-### Reduce la dimensión de tu dataset con LDA o PCA (puede resultar interesante para reducir el número de variables a 2 o 3 para así representarlo en uno, dos o tres gráficos del plano).
-### Crea un clustering por k-means o jerárquico utilizando como entrada resultado de la reducción de la dimensión anterior, para segmentar las observaciones en un número de grupos. Se valorará tener el modelo, su explicación, así como una representación gráfica del resultado.
-
-
-
-
 
 #### Reglas de asociación
 
