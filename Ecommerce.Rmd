@@ -196,6 +196,9 @@ country <- data %>%
   summarise(SalesVolume = sum(Quantity)) %>%
   rename(region = Country)
 
+#Como es un factor surge un problema al sustituir por tanto
+#en este dataset lo convertiremos en string
+country$region <- as.character(country$region)
 country$region <- ifelse(country$region == "United Kingdom", "UK",country$region)
 country$region <- ifelse(country$region == "EIRE", "Ireland",country$region)
 
@@ -205,14 +208,20 @@ country <- country %>%
          Proportion = (SalesVolume/sum(SalesVolume))*100)
 
 country$Proportion <- round(country$Proportion,2)
+```
 
+Generamos el mapa de calor con los datos transformados a logaritmos:
+```{r}
 world_map <- map_data("world")
 salesmap <- full_join(country, world_map, by = "region")
 ggplot(salesmap, aes(map_id = region, fill = logVolume))+
   geom_map(map = salesmap,  color = "white")+
   expand_limits(x = salesmap$long, y = salesmap$lat)+
   scale_fill_viridis_c(option = "C")
+```
 
+Creamos la tabla que representaba el gráfico anterior:
+```{r}
 #Tabla ventas por paises y proporción
 country %>%
   select(region,SalesVolume,Proportion) %>%
@@ -222,11 +231,8 @@ country %>%
                    Proportion = 
                      formatter("span", style = ~ style(font.weight = "bold"))),
               col.names = c("País","Volumen Ventas", "Proporción"))
-
-
-
-
 ```
+
 Se ha aplicado el logaritmo de las ventas porque como se puede observar en la tablas la mayoría de venta son en el mismo país, Reino Unido. Luego se vende en el resto de paises en menor medida pero se puede ver una clara diferencia una vez aplicados los logaritmos.
 
 #### Regresión lineal
@@ -357,8 +363,6 @@ kmeans <- kmeans(km_data, 2, iter.max = 300, nstart = 10)
 clusplot(km_data,kmeans$cluster, lines = 0, shade = T, color = T, labels = 2, plotchar = F, span = T, main = "Clustering por paises", xlab= "Cantidad vendida", ylab = "Precio por unidad total")
 ```
 Observamos que hay dos clusters de paises, el primer cluster incluye paises como: Australia, Irlanda, Francia, Alemania y Holanda. Básicamente paises vecinos (menos Australia) con los que es sencillo tener relaciones comerciales por su próximidad.
-
-### Para alguna de las variables discretas, aplica al menos dos de los algoritmos de clasificación. Se valorará tener el modelo, su explicación, así como una representación gráfica del resultado.
 
 #### Reglas de asociación
 

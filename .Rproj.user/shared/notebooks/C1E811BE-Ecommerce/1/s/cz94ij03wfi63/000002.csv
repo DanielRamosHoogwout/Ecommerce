@@ -1,0 +1,4 @@
+"0","data %>%"
+"0","  select(StockCode, Description) %>%"
+"0","  filter(StockCode == ""22698"" | StockCode == ""22699""| StockCode == ""22697"" | StockCode == ""22910"" | StockCode == ""22086"") %>%"
+"0","  unique()"
