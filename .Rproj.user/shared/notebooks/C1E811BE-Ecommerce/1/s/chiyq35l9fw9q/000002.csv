@@ -1,0 +1,4 @@
+"0","data %>%"
+"0","  group_by(weekDay) %>%"
+"0","  summarise(revenue = sum(lineTotal)) %>%"
+"0","  ggplot(aes(x = weekDay, y = revenue)) + geom_col(fill='darkblue') + labs(x = 'Dia de la semana', y = 'Beneficio (£)', title = 'Beneficio por dia de la semana')"

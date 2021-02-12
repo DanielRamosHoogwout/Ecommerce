@@ -1,6 +1,0 @@
-"0","world_map <- map_data(""world"")"
-"0","salesmap <- full_join(country, world_map, by = ""region"")"
-"0","ggplot(salesmap, aes(map_id = region, fill = logVolume))+"
-"0","  geom_map(map = salesmap,  color = ""white"")+"
-"0","  expand_limits(x = salesmap$long, y = salesmap$lat)+"
-"0","  scale_fill_viridis_c(option = ""C"")"

@@ -1,0 +1,6 @@
+"0","library(tree)
+"
+"2","Registered S3 method overwritten by 'tree':
+  method     from
+  print.tree cli 
+"

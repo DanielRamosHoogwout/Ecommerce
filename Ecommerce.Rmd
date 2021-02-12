@@ -21,6 +21,8 @@ library(arules)
 library(arulesViz)
 library(ggplot2)
 library(cluster)
+library(gbm)
+library(ISLR)
 ```
 
 ## Parte 1 Contexto del problema y modelo de datos (30/100)
@@ -148,7 +150,7 @@ sales %>% top_n(10) %>%
 #Tenemos muchos productos que se han vendido menos de 10 veces
 sum(sales$Total < 10) #En concreto 338
 #Quizás lo mejor sería eliminar estos productos del Stock
-sales[sales$Total < 10,]
+head(sales[sales$Total < 10,])
 ```
 #### Datos totales:
 ```{r}
@@ -274,7 +276,8 @@ rl_data <- data %>%
 
 fit1 <- lm(lineTotal ~ Quantity, data = rl_data)
 summary(fit1)
-plot(rl_data$Quantity, rl_data$lineTotal) +
+#Representamos con logaritmos
+plot(rl_data$Quantity,rl_data$lineTotal) +
 abline(fit1)
 
 ```
@@ -311,7 +314,54 @@ Rechazamos hipótesis nula por tanto el modelo ampliado es mejor.
 
 #### Algoritmos de clasificación
 
+Boosting:
+Seleccionando variables como la cantidad comprada y el precio vamos a intentar predecir desde que país nos compran.
+```{r}
+#Seleccionamos una submuestra para evitar tiempos muy largos de cálculo
+df <- data[1:30000,c(4,6,8)]
+df <- df[sample(nrow(df)),]  # shuffle
 
+df.train <- df[1:15000,]
+df.test <- df[15001:30000,]
+
+BST = gbm(Country~.,data=df.train,
+          distribution='multinomial',
+          n.trees=200,
+          interaction.depth=4,
+          #cv.folds=5,
+          shrinkage=0.005)
+
+# La variable dependiente tiene varias categorias y usamos "multinomial".
+predBST = predict(BST,n.trees=200, newdata=df.test,type='response')
+pred=as.matrix(predBST[,,1])
+# La funci�n which.max elige la categoria con la probabilidad m�s alta. 
+p.predBST <- apply(predBST, 1, which.max)
+# Añadimos nombres de categorias.
+p.predcat <- colnames(predBST)[p.predBST]
+
+table(p.predcat,df.test$Country)
+mean(p.predcat==df.test$Country)
+```
+El boosting  ha clasificado bien el 91% de los paises en función de sus compras. Los datos estan desbalanceados, porque si el algoritmo elige como país Reino Unido, acertará la gran mayoría de veces porque es donde más venden en general.
+
+Clasificación mediante logit:
+```{r}
+#Como tenemos 37 paises vamos a cambiarlos por si es de Reino Unido o de fuera.
+df$Country <- as.character(df$Country) #Para evitar problemas
+df$Country <- ifelse(df$Country != "United Kingdom", "Fuera", df$Country)
+df$Country <- as.factor(df$Country)
+
+glm.fit=glm(Country~., data=df, family=binomial)
+summary(glm.fit)
+
+glm.probs=predict(glm.fit,type="response") 
+glm.pred=ifelse(glm.probs>0.5,"United Kingdom","Fuera")
+
+table(glm.pred,df$Country)
+mean(glm.pred==df$Country)
+
+```
+Clasificamos con una precisión de 91% pero como se ha mencionado antes, esto no es fiable ya que los datos de este dataset estan muy desbalanceados por el hecho de que donde más vende es en Reino Unido con una diferencia abismal.
 
 #### Análisis de componentes principales
 

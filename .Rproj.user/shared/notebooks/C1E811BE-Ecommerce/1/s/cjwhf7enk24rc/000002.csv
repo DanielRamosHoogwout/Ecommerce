@@ -1,3 +1,0 @@
-"0","set.seed(2021)"
-"0","kmeans <- kmeans(km_data, 2, iter.max = 300, nstart = 10)"
-"0","clusplot(km_data,kmeans$cluster, lines = 0, shade = T, color = T, labels = 2, plotchar = F, span = T, main = ""Clustering por paises"", xlab= ""Cantidad vendida"", ylab = ""Precio por unidad total"")"

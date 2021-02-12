@@ -1,0 +1,170 @@
+install.packages("MASS")
+install.packages("ISLR")
+install.packages("tree")
+install.packages("randomForest")
+install.packages("gbm")
+
+require(MASS)
+require(ISLR)
+require(tree)
+require(randomForest)
+require(gbm)
+
+dataWN <- read.table("Airbnb3claOUT.txt", header=TRUE) 
+summary(dataWN)
+Data <- data.frame(dataWN)
+
+#dropjulaug
+nrow(Data)
+dfWN1 <- na.omit(Data)
+
+
+#En "tree" debemos tener categorias en texto, en lugar de 0 y 1. 
+dropjulaugC=ifelse(dfWN1$dropjulaug<=0.5,"No","Yes")
+dfWN1=data.frame(dfWN1, dropjulaugC)
+dfWN1 <- subset( dfWN1, select = -c(dropjulaug) )
+
+attach(dfWN1)
+
+#Classification tree
+tree.lnrevEUR14=tree(dropjulaugC~.,data=dfWN1)
+summary(tree.lnrevEUR14)
+plot(tree.lnrevEUR14)
+text(tree.lnrevEUR14,pretty=0)
+tree.lnrevEUR14
+
+set.seed(10111)
+
+#Mira cuantos observaciones para elegir tama�o de datos de "test".
+nrow(dfWN1)
+train=sample(1:nrow(dfWN1),19677-5677)
+
+#...con los datos de entrener. 
+tree.lnrevEUR14=tree(dropjulaugC~.,data=dfWN1,subset=train)
+
+plot(tree.lnrevEUR14);text(tree.lnrevEUR14,pretty=0)
+tree.pred=predict(tree.lnrevEUR14,dfWN1[-train,],type="class")
+with(dfWN1[-train,],table(tree.pred,dropjulaugC))
+#Todas las observaciones a "No"!
+
+#El arbol no necesita poda, pero lo ense�o de todos modos...
+cv.lnrevEUR14=cv.tree(tree.lnrevEUR14,FUN=prune.tree)
+cv.lnrevEUR14
+plot(cv.lnrevEUR14)
+
+prune.lnrevEUR14=prune.tree(tree.lnrevEUR14,best=2)
+plot(prune.lnrevEUR14);text(prune.lnrevEUR14,pretty=0)
+
+#Random forests
+require(randomForest)
+require(MASS)
+set.seed(101)
+
+#Este apartado saltamos; era para ver como funciona el modelo sin estas variables.
+#dfWNreduced <- subset( dfWN1, select = -c(revenueEUR130, reservationdays130,
+#                                          nodays13D, revenueEUR120,
+#                                          reservationdays120,
+#                                          nodays12D) )
+
+#Aqu� elegimos Random Forests con mtry=14, pero abajo buscamos 1,..,p. 
+#ntree=1000
+#NO HACER EN CLASE. Tarda demasiado. 
+rf.lnrevEUR14=randomForest(dropjulaugC~.,data=dfWN1,ntree=1000,mtry=14)
+
+#Miramos OOB error rate y "Confusion matrix".
+rf.lnrevEUR14
+#�Cuales de las variables son m�s importantes?
+importance(rf.lnrevEUR14)
+#?importance
+
+#Comprobar cuantas variables tenemos:
+dim(dfWN1)
+#Buscamos mtry
+oob.err=double(22)
+test.err=double(22)
+
+#NO HACER EN CLASE. Tarda demasiado. 
+for(mtry in 1:22){
+  fit=randomForest(dropjulaugC~.,data=dfWN1,subset=train,mtry=mtry,ntree=400)
+  oob.err[mtry]=fit$err.rate[400]
+  pred=predict(fit,dfWN1[-train, ],type="class")
+  test.err[mtry]=with(dfWN1[-train,],1-mean(dropjulaugC==pred))
+  cat(mtry," ") ## Print out the value of the loop
+}
+
+matplot(1:mtry,cbind(test.err,oob.err),pch=19,col=c("red","blue"),type="b",ylab="Classification Error Rate")
+legend("topright",legend=c("Test","OOB"),pch=19,col=c("red","blue"))
+
+#Boosting
+require(gbm)
+
+#La funci�n gbm usa la variable 0 y 1:
+dropjulaug=ifelse(dfWN1$dropjulaugC=="No",0,1)
+dfWN1=data.frame(dfWN1, dropjulaug)
+dfWN2 <- subset( dfWN1, select = -c(dropjulaugC) )
+
+#NO HACER EN CLASE. Tarda demasiado. 
+boost.lnrevEUR14=gbm(dropjulaug~.,data=dfWN2[train,],distribution="bernoulli",n.trees=40000,shrinkage=0.01,interaction.depth=5)
+#Aqu� usamos "bernoulli", en lugar de "gaussian", porque tenemos classificaion, no regresi�n.
+#Nota: La variable dependiente tiene que ser 0 o 1.
+#Qu� variables son m�s importantes. Nota, en diferentes n.tree sera diferente.
+summary(boost.lnrevEUR14)
+summary(boost.lnrevEUR14,n.trees=30000)
+
+n.trees=seq(from=100,to=40000,by=100)
+predmat=predict(boost.lnrevEUR14,newdata=dfWN2[-train,],n.trees=n.trees,type="response")
+predrented=ifelse(predmat<=0.5,0,1)
+dim(predmat)
+
+berr=with(dfWN2[-train,],apply( abs(predrented-dropjulaug),2,mean))
+#El plot nos ayuda para ver si tenemos sobre ajuste en los datos de "test", 
+#pero m�s abajo usamos CV para elegir el numero de �rboles.
+plot(n.trees,berr,pch=19,ylab="Classification Error Rate", xlab="# Trees",main="Boosting Test Error")
+
+# Comparison with Random Forest
+abline(h=min(test.err),col="red")
+
+min(test.err)
+min(berr)
+#En lugar de proporci�n clasificado INcorrectamente, me interesa
+#Correctamente clasificado. 
+#Random Forest
+1-min(test.err)
+#Boosting
+1-min(berr)
+
+#Compara con la proporci�n en los datos de "test".
+with(dfWN2[-train,],summary(dropjulaug))
+#En los datos completas:
+summary(dropjulaug)
+
+## Do 5-fold cross-validation
+#NO HACER EN CLASE. Tarda demasiado.
+boost.lnrevEUR14.cv=gbm(dropjulaug~.,data=dfWN2[train,],
+                        distribution="bernoulli",n.trees=40000,shrinkage=0.01
+                        ,interaction.depth=5,cv.folds=5)
+n.trees=seq(from=100,to=40000,by=100)
+# check performance using 5-fold cross-validation
+best.iter <- gbm.perf(boost.lnrevEUR14.cv,method="cv")
+print(best.iter)
+# plot the performance # plot variable influence
+summary(boost.lnrevEUR14.cv,n.trees=30000) # based on ten thousand trees
+summary(boost.lnrevEUR14.cv,n.trees=best.iter) # based on the estimated best number of trees
+# predict on the new data using "best" number of trees
+n.trees.2=seq(from=100,to=best.iter,by=100)
+predmat.2=predict(boost.lnrevEUR14.cv,newdata=dfWN2[-train,],n.trees=n.trees.2)
+dim(predmat.2)
+
+predrented.2=ifelse(predmat.2<=0.5,0,1)
+berr.2=with(dfWN2[-train,],apply( abs(predrented.2-dropjulaug),2,mean))
+#berr.2=with(dfWN2[-train,],apply( (predmat.2-lnrevEUR14)^2, 2,mean))
+plot(n.trees.2,berr.2,pch=19,ylab="Classification Error Rate", xlab="# Trees",main="Boosting Test Error")
+
+1-min(berr)
+1-min(oob.err)
+1-min(berr.2)
+
+# Comparison with Random Forest
+abline(h=min(test.err),col="red")
+min(test.err)
+

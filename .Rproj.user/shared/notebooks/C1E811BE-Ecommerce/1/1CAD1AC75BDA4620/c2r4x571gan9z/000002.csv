@@ -1,0 +1,8 @@
+"0","BST = gbm(Country~.,data=df.train,
+          distribution='multinomial',
+          n.trees=200,
+          interaction.depth=4,
+          #cv.folds=5,
+          shrinkage=0.005)
+"
+"2","Setting `distribution = ""multinomial""` is ill-advised as it is currently broken. It exists only for backwards compatibility. Use at your own risk."

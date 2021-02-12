@@ -1,6 +1,0 @@
-"0","#Detalle importante a tener en cuenta: El precio de los productos son menores si se compran en grandes cantidades:"
-"0","data %>%"
-"0","  group_by(StockCode, UnitPrice) %>%"
-"0","  summarise(Total = sum(Quantity)) %>% head(10)"
-"2","`summarise()` has grouped output by 'StockCode'. You can override using the `.groups` argument.
-"

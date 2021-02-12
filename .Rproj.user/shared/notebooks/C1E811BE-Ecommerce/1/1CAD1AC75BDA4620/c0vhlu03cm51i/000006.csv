@@ -1,0 +1,4 @@
+"0","tree.country=tree(Country~.,df,subset=df.train)
+"
+"2","Error in `[.default`(xj, i) : invalid subscript type 'list'
+"

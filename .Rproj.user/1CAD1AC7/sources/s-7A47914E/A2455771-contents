@@ -1,0 +1,67 @@
+#Using GBM
+
+library(gbm)
+
+data(iris)
+
+df <- iris[,-c(1)] # remove index
+
+df <- df[sample(nrow(df)),]  # shuffle
+
+df.train <- df[1:100,]
+df.test <- df[101:150,]
+
+BST = gbm(Species~.,data=df.train,
+          distribution='multinomial',
+          n.trees=200,
+          interaction.depth=4,
+          #cv.folds=5,
+          shrinkage=0.005)
+
+# La variable dependiente tiene 3 categorias y usamos "multinomial".
+# Las categorias son expressadas en texto. 
+
+predBST = predict(BST,n.trees=200, newdata=df.test,type='response')
+
+pred=as.matrix(predBST[,,1])
+head(pred)
+# Aqu� vemos la probabilidad de cada categoria de la predici�n. 
+
+p.predBST <- apply(predBST, 1, which.max)
+# La funci�n which.max elige la categoria con la probabilidad m�s alta. 
+# El resultado ser�a lo mismo si incluimos "pred" en lugar de predBST directament
+
+p.predcat <- colnames(predBST)[p.predBST]
+# A�adimos nombres de categorias. 
+
+table(p.predcat,df.test$Species)
+mean(p.predcat==df.test$Species)
+
+
+
+
+
+#Using One-vs-All and One-vs-One with SVM
+#Nota: SVM est� incluido en Aprendizaje II.
+#http://r.gmum.net/samples/svm.multiclass.html
+# Use SVM to run multiclass prediction (OVA or OVR)
+
+library(gmum.r)
+library(e1071)
+data(iris)
+
+# One versus all is solving K subproblems
+sv.ova <- svm(Species ~ ., data=df.train, class.type="one.versus.all", verbosity=0)
+preds <- predict(sv.ova, df.test)
+
+acc.ova <- sum(diag(table(preds,df.test$Species)))/sum(table(preds,df.test$Species))  
+acc.ova
+table(preds,df.test$Species)
+
+# One versus one is solving K(K-1)/2 subproblems (one for each pair)
+sv.ovo <- svm(Species ~ ., data=df.train, class.type="one.versus.one", verbosity=0)
+preds <- predict(sv.ovo, df.test)
+
+acc.ovo <- sum(diag(table(preds, df.test$Species)))/sum(table(preds, df.test$Species))
+acc.ovo
+table(preds,df.test$Species)

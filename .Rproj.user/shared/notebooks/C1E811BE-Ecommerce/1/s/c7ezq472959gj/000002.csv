@@ -1,2 +1,0 @@
-"0","reglas <- sort(rules, by = ""lift"")[1:10]"
-"0","plot(reglas, method = ""graph"", engine = ""htmlwidget"")"

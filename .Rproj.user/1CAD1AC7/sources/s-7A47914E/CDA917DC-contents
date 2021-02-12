@@ -1,0 +1,232 @@
+install.packages("MASS")
+install.packages("ISLR")
+install.packages("tree")
+install.packages("randomForest")
+install.packages("gbm")
+
+require(MASS)
+require(ISLR)
+require(tree)
+require(randomForest)
+require(gbm)
+
+dataWN <- read.table("Airbnb3rev.txt", header=TRUE) 
+
+dataWN <- subset( dataWN, select = -c(propertyid) )
+summary(dataWN)
+Data <- data.frame(dataWN)
+
+nrow(Data)
+dfWN1 <- na.omit(Data)
+nrow(dfWN1)
+
+attach(dfWN1)
+
+#Regression tree
+tree.lnrevEUR14=tree(lnrevEUR14~.,data=dfWN1)
+
+summary(tree.lnrevEUR14)
+plot(tree.lnrevEUR14)
+text(tree.lnrevEUR14,pretty=0)
+tree.lnrevEUR14
+
+set.seed(10111)
+nrow(dfWN1)
+train=sample(1:nrow(dfWN1),16373-5373)
+
+tree.lnrevEUR14=tree(lnrevEUR14~.,data=dfWN1,subset=train)
+plot(tree.lnrevEUR14);text(tree.lnrevEUR14,pretty=0)
+tree.pred=predict(tree.lnrevEUR14,dfWN1[-train,])
+
+#El arbol no necesita poda, pero lo ense�o de todos modos...
+cv.lnrevEUR14=cv.tree(tree.lnrevEUR14,FUN=prune.tree)
+cv.lnrevEUR14
+plot(cv.lnrevEUR14)
+
+prune.lnrevEUR14=prune.tree(tree.lnrevEUR14,best=7)
+plot(prune.lnrevEUR14);text(prune.lnrevEUR14,pretty=0)
+
+#Random forests
+require(randomForest)
+require(MASS)
+set.seed(101)
+
+#Aqu� elegimos Random Forests con mtry=5, pero abajo buscamos 1,..,p. 
+#ntree=500
+#NO HACER EN CLASE. Tarda demasiado.
+rf.lnrevEUR14=randomForest(lnrevEUR14~.,data=dfWN1,subset=train,mtry=5)
+
+#summary(rf.lnrevEUR14)
+rf.lnrevEUR14
+importance(rf.lnrevEUR14)
+
+summary(lnrevEUR14)
+var(lnrevEUR14)
+
+dim(dfWN1)
+#Buscamos mtry
+oob.err=double(22)
+test.err=double(22)
+#NO HACER EN CLASE. Tarda demasiado.
+for(mtry in 1:22){
+  fit=randomForest(lnrevEUR14~.,data=dfWN1,subset=train,mtry=mtry,ntree=400)
+  oob.err[mtry]=fit$mse[400]
+  pred=predict(fit,dfWN1[-train, ])
+  test.err[mtry]=with(dfWN1[-train,], mean((lnrevEUR14-pred)^2))
+  cat(mtry," ") ## Print out the value of the loop
+}
+
+matplot(1:mtry,cbind(test.err,oob.err),pch=19,col=c("red","blue"),type="b",ylab="MSE")
+legend("topright",legend=c("Test","OOB"),pch=19,col=c("red","blue"))
+
+#Boosting
+require(gbm)
+#NO HACER EN CLASE. Tarda demasiado.
+boost.lnrevEUR14=gbm(lnrevEUR14~.,data=dfWN1[train,],distribution="gaussian",n.trees=10000,shrinkage=0.01,interaction.depth=9)
+#Aqu� usamos "gaussian", en lugar de "bernoulli", porque tenemos regresi�n, no clasificaci�n.
+summary(boost.lnrevEUR14)
+summary(boost.lnrevEUR14,n.trees=4000)
+
+n.trees=seq(from=100,to=10000,by=100)
+predmat=predict(boost.lnrevEUR14,newdata=dfWN1[-train,],n.trees=n.trees)
+
+dim(predmat)
+
+berr=with(dfWN1[-train,],apply( (predmat-lnrevEUR14)^2,2,mean))
+dim(dfWN1[-train,])
+plot(n.trees,berr,pch=19,ylab="Mean Squared Error", xlab="# Trees",main="Boosting Test Error")
+
+# Comparison with Random Forest
+abline(h=min(test.err),col="red")
+min(test.err)
+min(berr)
+
+#Random Forests; varianza explicada
+1-(min(test.err)/with(dfWN1[-train,],var(lnrevEUR14)))
+#Boosting
+1-(min(berr)/with(dfWN1[-train,],var(lnrevEUR14)))
+
+## Do 5-fold cross-validation
+boost.lnrevEUR14.cv=gbm(lnrevEUR14~.,data=dfWN1[train,],
+                        distribution="gaussian",n.trees=10000,shrinkage=0.01
+                        ,interaction.depth=9,cv.folds=5)
+n.trees=seq(from=100,to=10000,by=100)
+# check performance using 5-fold cross-validation
+best.iter <- gbm.perf(boost.lnrevEUR14.cv,method="cv")
+print(best.iter)
+# plot the performance # plot variable influence
+summary(boost.lnrevEUR14.cv,n.trees=3000) # based on ten thousand trees
+summary(boost.lnrevEUR14.cv,n.trees=best.iter) # based on the estimated best number of trees
+# predict on the new data using "best" number of trees
+n.trees.2=seq(from=100,to=best.iter,by=100)
+predmat.2=predict(boost.lnrevEUR14.cv,newdata=dfWN1[-train,],n.trees=n.trees.2)
+dim(predmat.2)
+
+berr.2=with(dfWN1[-train,],apply( (predmat.2-lnrevEUR14)^2, 2,mean))
+plot(n.trees.2,berr.2,pch=19,ylab="Mean Squared Error", xlab="# Trees",main="Boosting Test Error")
+
+min(berr)
+min(oob.err)
+min(berr.2)
+
+var(lnrevEUR14)
+
+1-min(berr.2)/with(dfWN1[-train,],var(lnrevEUR14))
+
+# Comparison with Random Forest
+abline(h=min(test.err),col="red")
+min(test.err)
+
+?gbm
+summary(dfWN1)
+
+plot(boost.lnrevEUR14,i="reservationdays130")
+plot(boost.boston,i="rm")
+
+
+
+#LDAdropjulaug reservationP14
+lda.fit=lda(reservationP14~bedrooms+bathrooms+maxguests+minimumstay+
+              createddatenum+reservationdays130+
+              reservationdays120+nodays13D+nodays12D+
+              Ibiza+Menorca+Formentera+
+              createdjuly16+createdjune16+createdmay16+
+              mean025res13+mean025nondays13+rated,CV=TRUE,data=dfWN1)
+table(lda.fit$class,dfWN1$reservationP14)
+mean(lda.fit$class==dfWN1$reservationP14)
+
+lda.fit=lda(reservationP14~nodays13D,CV=TRUE,data=dfWN1)
+table(lda.fit$class,dfWN1$reservationP14)
+mean(lda.fit$class==dfWN1$reservationP14)
+
+#QDA
+qda.fit=qda(reservationP14~bedrooms+bathrooms+maxguests+minimumstay+
+              createddatenum+reservationdays130+
+              reservationdays120+nodays13D+nodays12D+
+              Ibiza+Menorca+Formentera+
+              createdjuly16+createdjune16+createdmay16,CV=TRUE,data=dfWN1)
+table(qda.fit$class,dfWN1$reservationP14)
+mean(qda.fit$class==dfWN1$reservationP14)
+
+
+#Logit
+glm.fit=glm(reservationP14~bedrooms+bathrooms+maxguests+minimumstay+
+              createddatenum+reservationdays130+
+              reservationdays120+nodays13D+nodays12D+
+              Ibiza+Menorca+Formentera+
+              createdjuly16+createdjune16+createdmay16,data=dfWN1,family=binomial)
+summary(glm.fit)
+glm.probs=predict(glm.fit,type="response") 
+glm.probs[1:5]
+glm.pred=ifelse(glm.probs>0.5,"1","0")
+attach(dfWN1)
+table(glm.pred,reservationP14)
+mean(glm.pred==reservationP14)
+
+library(spgwr)
+?SpatialPointsDataFrame
+coordinates(dfWN1) <- ~longitude+latitude
+head(dfWN1)
+
+summary(dfWN1)
+# 0.001, 0.005, 0.01, 0.0025
+gwcov<-gw.cov(dfWN1, vars=26:27, adapt = 0.0025, gweight = gwr.tricube,
+              cor = FALSE, var.term = FALSE, longlat = TRUE)
+names(gwcov)
+names(gwcov$SDF)
+summary(gwcov$SDF)
+
+dfWN1$mean.res13 <- gwcov$SDF$mean.reservationdays130
+dfWN1$mean.nodays13D <- gwcov$SDF$mean.nodays13D
+
+
+#Logit
+glm.fit=glm(reservationP14~bedrooms+bathrooms+maxguests+minimumstay+
+              createddatenum+reservationdays130+reservationdays120+
+              nodays13D+nodays12D+
+              Ibiza+Menorca+Formentera+
+              mean.res13+mean.nodays13D,data=dfWN1,family=binomial)
+
+glm.fit=glm(reservationP14~nodays13D,data=dfWN1,family=binomial)
+
+summary(glm.fit)
+glm.probs=predict(glm.fit,type="response") 
+glm.probs[1:5]
+glm.pred=ifelse(glm.probs>0.5,"1","0")
+attach(dfWN1)
+table(glm.pred,reservationP14)
+mean(glm.pred==reservationP14)
+
+table(nodays13D,reservationP14)
+mean(nodays13D!=reservationP14)
+
+
+write.table(dfWN1, file="dfWN025.txt", sep="\t")
+
+
+mean.nodays12D
+help(memory.size)
+
+gwcov
+
+
