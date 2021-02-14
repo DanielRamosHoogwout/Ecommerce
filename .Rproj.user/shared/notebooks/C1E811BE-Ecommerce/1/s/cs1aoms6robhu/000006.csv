@@ -1,0 +1,8 @@
+"0","#Tenemos muchos productos que se han vendido menos de 10 veces"
+"0","sum(sales$Total < 10) #En concreto 338"
+"1","[1]"
+"1"," 338"
+"1","
+"
+"0","#Quizás lo mejor sería eliminar estos productos del Stock"
+"0","head(sales[sales$Total < 10,])"

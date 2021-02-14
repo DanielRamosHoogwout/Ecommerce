@@ -1,0 +1,7 @@
+"0","#Volvemos a aplicar las reglas de asociación pero con una confianza un poco más baja"
+"0","rules = apriori(dataset, list(support = 0.05, confidence = 0.6))"
+"1","Apriori
+"
+"1","
+Parameter specification:
+"

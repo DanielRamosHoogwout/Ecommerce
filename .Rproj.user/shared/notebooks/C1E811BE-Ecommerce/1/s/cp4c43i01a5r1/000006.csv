@@ -1,0 +1,8 @@
+"0","data %>%"
+"0","  group_by(StockCode) %>%"
+"0","  summarise(count = n(),"
+"0","            sum_quantity = sum(Quantity),"
+"0","            mean_quantity = round(mean(Quantity), 2),"
+"0","            median_quantity = median(Quantity),"
+"0","            mode_quantity = unique(Quantity)[which.max(tabulate(match(Quantity, unique(Quantity))))],"
+"0","            sd_quantity = round(sd(Quantity), 2))"

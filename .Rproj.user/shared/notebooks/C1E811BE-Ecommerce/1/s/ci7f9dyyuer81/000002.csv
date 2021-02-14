@@ -1,0 +1,9 @@
+"0","a_data <- data %>%"
+"0","  select(CustomerID, StockCode) %>%"
+"0","  mutate(StockCode = strsplit(StockCode, "","")) %>% "
+"0","    unnest %>% "
+"0","    distinct(CustomerID, StockCode) %>% "
+"0","    group_by(CustomerID) %>% "
+"0","    summarise(StockCode = toString(StockCode))"
+"2","`cols` is now required when using unnest().
+Please use `cols = c(StockCode)`"

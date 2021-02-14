@@ -6735,57 +6735,33 @@ div.tocify {
 <p>El fichero del cual se extraen los datos es data.csv, el cual contiene la información de las transacciones de un comerciante al por menor de Reino Unido. El fichero esta compuesto por 8 columnas y más de medio millón de filas.</p>
 <p>Las columnas son las siguentes:</p>
 <ul>
-<li>Nº de Factura:</li>
-<li>Código de Stock</li>
-<li>Descripción</li>
-<li>Cantidad</li>
-<li>Fecha de Factura</li>
-<li>Precio por unidad</li>
-<li>ID del comprador</li>
-<li>País</li>
+<li>Nº de Factura: <strong>InvoiceNo</strong></li>
+<li>Código de Stock: <strong>StockCode</strong></li>
+<li>Descripción: <strong>Description</strong></li>
+<li>Cantidad: <strong>Quantity</strong></li>
+<li>Fecha de Factura: <strong>InvoiceDate</strong></li>
+<li>Precio por unidad: <strong>UnitPrice</strong></li>
+<li>ID del comprador: <strong>CustomerID</strong></li>
+<li>País: <strong>Country</strong></li>
 </ul>
-<p>Con los siguientes datos se va a recoger una serie datos como, por ejemplo, el producto estrella, la época del año en que más se vende, el pedido más grande… Aún asi, hay que destacar que el análisis más importante va a ser un modelo de predicción mediantes series temporales para predecir el stock de este Ecommerce, es bien conocida la importancia del buen manejo del stock para optimizar los recursos de la empresa y obtener el máximo de beneficio posible teniendo siempre la máxima disponibilidad de productos.</p>
+<p>Con los siguientes datos se van a realizar una serie de gráficos, tablas y análisis mediante técnicas de inferencia estadística y machine learning para obtener una visión global de esta empresa B2B para ayudar a la hora de la toma de decisiones.</p>
 </div>
 <div id="limpieza-de-datos" class="section level3">
 <h3>2. Limpieza de datos</h3>
+<p>En esta sección limpiamos el fichero de datos eliminando valores NA, observaciones repetidas y valores erróneos. También creamos la variables nuevas como el precio total de cada venta, parseamos la fecha con la ayuda de el paquete Lubridate, convertimos y separamos los datos a un formato más cómodo para analizar.</p>
 <pre class="r"><code>#Cargamos los datos:
 data &lt;- read.csv(&quot;data.csv&quot;)
-class(data$InvoiceDate)</code></pre>
-<pre><code>## [1] &quot;character&quot;</code></pre>
-<pre class="r"><code>#A priori parace que solo tenemos problemas con la fecha de la factura que es leída como un string
+class(data$InvoiceDate)
+#A priori parace que solo tenemos problemas con la fecha de la factura que es leída como un string
 data &lt;- data %&gt;%
   mutate(
     ParsedDate = parse_datetime(InvoiceDate, format = &quot;%m/%d/%Y %H:%M&quot;)
   )
 #Comprobamos que no haya NA en el fichero
-anyNA(data) #Tenemos NA</code></pre>
-<pre><code>## [1] TRUE</code></pre>
-<pre class="r"><code>summary(data) #Solo hay NA&#39;s en CustomerID</code></pre>
-<pre><code>##   InvoiceNo          StockCode         Description           Quantity        
-##  Length:541909      Length:541909      Length:541909      Min.   :-80995.00  
-##  Class :character   Class :character   Class :character   1st Qu.:     1.00  
-##  Mode  :character   Mode  :character   Mode  :character   Median :     3.00  
-##                                                           Mean   :     9.55  
-##                                                           3rd Qu.:    10.00  
-##                                                           Max.   : 80995.00  
-##                                                                              
-##  InvoiceDate          UnitPrice           CustomerID       Country         
-##  Length:541909      Min.   :-11062.06   Min.   :12346    Length:541909     
-##  Class :character   1st Qu.:     1.25   1st Qu.:13953    Class :character  
-##  Mode  :character   Median :     2.08   Median :15152    Mode  :character  
-##                     Mean   :     4.61   Mean   :15288                      
-##                     3rd Qu.:     4.13   3rd Qu.:16791                      
-##                     Max.   : 38970.00   Max.   :18287                      
-##                                         NA&#39;s   :135080                     
-##    ParsedDate                 
-##  Min.   :2010-12-01 08:26:00  
-##  1st Qu.:2011-03-28 11:34:00  
-##  Median :2011-07-19 17:17:00  
-##  Mean   :2011-07-04 13:34:57  
-##  3rd Qu.:2011-10-19 11:27:00  
-##  Max.   :2011-12-09 12:50:00  
-## </code></pre>
-<pre class="r"><code>#Borramos todos los precios y cantidades negativas
+anyNA(data) #Tenemos NA
+summary(data) #Solo hay NA&#39;s en CustomerID
+
+#Borramos todos los precios y cantidades negativas
 data &lt;- data %&gt;% 
   mutate(Quantity = replace(Quantity, Quantity&lt;=0, NA),
          UnitPrice = replace(UnitPrice, UnitPrice&lt;=0, NA))
@@ -6817,13 +6793,13 @@ data$Country &lt;- as.factor(data$Country)</code></pre>
 <h3>3.Justificación del tipo de variables</h3>
 <ul>
 <li><p>Nº de Factura: Es una variable categórica ordinal, ya que el orden sí que es importante. Se mantendrá esta variable como una cadena de caracteres por una sencilla razón, no todas las facturas son númericas, hay algunas que empiezan por la letra C, que significan una cancelación.</p></li>
-<li><p>Código de Stock: Es una variable categórica, ya que tiene un valor finito, pero la mantendremos como un string ya que tiene valores alfanúmericos y son muchos productos diferentes.</p></li>
-<li><p>Descripción: Es una variable categórica única para cada producto y la manera más comoda de usarla es mediante caracteres ya que son muchos productos.</p></li>
+<li><p>Código de Stock: Es una variable categórica, ya que tiene un valor finito, pero la mantendremos como un string ya que tiene valores alfanúmericos.</p></li>
+<li><p>Descripción: Es una variable categórica única para cada producto y la manera más comoda de usarla es mediante caracteres ya que son muchos productos y convertirla en factor seria ineficiente.</p></li>
 <li><p>Cantidad: Es una variable númerica y la mantendremos como un entero.</p></li>
 <li><p>Fecha de Factura: Es una variable ordinal, ya que el orden es importante y tiene un rango de valores finito, aún asi se ha parseado la varible para que R puede interpretarla en formato fecha.</p></li>
-<li><p>Precio por unidad: Es una variable númerica.</p></li>
-<li><p>ID del comprador: Esta variable es una variable categorica que representa a cada comprador, pero por comodidad para el análisis la dejaremos como variable númerica.</p></li>
-<li><p>País: Variable categórica que representa a cada país y se utiliza un factor.</p></li>
+<li><p>Precio por unidad: Es una variable númerica continua.</p></li>
+<li><p>ID del comprador: Esta variable es categorica que representa a cada comprador, pero por comodidad para el análisis la dejaremos como variable númerica.</p></li>
+<li><p>País: Variable categórica que representa a cada país y la convertimos en un factor.</p></li>
 </ul>
 </div>
 </div>
@@ -6860,7 +6836,6 @@ data$Country &lt;- as.factor(data$Country)</code></pre>
 data %&gt;%
   group_by(StockCode, UnitPrice) %&gt;%
   summarise(Total = sum(Quantity)) %&gt;% head(10)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;StockCode&#39;. You can override using the `.groups` argument.</code></pre>
 <pre><code>## # A tibble: 10 x 3
 ## # Groups:   StockCode [8]
 ##    StockCode UnitPrice Total
@@ -6888,7 +6863,6 @@ sales %&gt;% top_n(10) %&gt;%
   formattable(align = c(&quot;l&quot;, &quot;c&quot;),
               list(Total = color_bar(&quot;lightgrey&quot;)),
               col.names = c(&quot;Código&quot;,&quot;Nº Vendido&quot;))</code></pre>
-<pre><code>## Selecting by Total</code></pre>
 <table class="table table-condensed">
 <thead>
 <tr>
@@ -7100,7 +7074,7 @@ country &lt;- country %&gt;%
          Proportion = (SalesVolume/sum(SalesVolume))*100)
 
 country$Proportion &lt;- round(country$Proportion,2)</code></pre>
-<p>Generamos el mapa de calor con los datos transformados a logaritmos:</p>
+<p>Generamos el mapa de calor con los datos transformados a logaritmos, si no solo aparecería Reino Unido ya que vende muchisimo más:</p>
 <pre class="r"><code>world_map &lt;- map_data(&quot;world&quot;)
 salesmap &lt;- full_join(country, world_map, by = &quot;region&quot;)
 ggplot(salesmap, aes(map_id = region, fill = logVolume))+
@@ -7546,57 +7520,6 @@ Saudi Arabia
 </div>
 <div id="regresión-lineal" class="section level4">
 <h4>Regresión lineal</h4>
-<p>Vamos a observar si podemos linealizar el precio final de la cesta a partir de el precio y la cantidad del producto.</p>
-<pre class="r"><code>rl_data &lt;- data %&gt;%
-  select(lineTotal, Quantity, UnitPrice)
-
-fit1 &lt;- lm(lineTotal ~., data = rl_data)
-fit1 #El coeficiente tiene el signo esperado (Positivo)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = lineTotal ~ ., data = rl_data)
-## 
-## Coefficients:
-## (Intercept)     Quantity    UnitPrice  
-##      -1.808        1.577        1.200</code></pre>
-<pre class="r"><code>summary(fit1)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = lineTotal ~ ., data = rl_data)
-## 
-## Residuals:
-##    Min     1Q Median     3Q    Max 
-## -39841     -2      0      5  40753 
-## 
-## Coefficients:
-##              Estimate Std. Error  t value Pr(&gt;|t|)    
-## (Intercept) -1.807789   0.198795   -9.094   &lt;2e-16 ***
-## Quantity     1.576834   0.001088 1449.521   &lt;2e-16 ***
-## UnitPrice    1.200194   0.008828  135.957   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 123 on 392689 degrees of freedom
-## Multiple R-squared:  0.8436, Adjusted R-squared:  0.8436 
-## F-statistic: 1.059e+06 on 2 and 392689 DF,  p-value: &lt; 2.2e-16</code></pre>
-<p>Por tanto nos queda un regresión lineal:</p>
-<p><span class="math inline">\(lineTotal = -1.81\beta_0+1.58Quantity+1.20UnitPrice\)</span></p>
-<p>Con un <span class="math inline">\(R^2_a\)</span> = 0.84, asi que el modelo ajusta muy bien.</p>
-<p>Un intervalo de confianza del 90% seria:</p>
-<pre class="r"><code>confint(fit1, level = 0.9)</code></pre>
-<pre><code>##                   5 %      95 %
-## (Intercept) -2.134779 -1.480800
-## Quantity     1.575044  1.578623
-## UnitPrice    1.185674  1.214714</code></pre>
-</div>
-</div>
-<div id="parte-3-aprendizaje-estadístico-machine-learning-40100" class="section level2">
-<h2>Parte 3: Aprendizaje estadístico (Machine Learning) (40/100)</h2>
-<p>En esta última parte aplica algunas de las técnicas de Machine Learning que hemos visto.</p>
-<p>En cada caso de machine learning, si es necesario, divídelos en conjuntos de datos de training y de testing.</p>
-<p>Sobre todo desde el punto de vista de la parte de la tecnología de aplicación.</p>
-<div id="regresión-lineal-1" class="section level4">
-<h4>Regresión lineal</h4>
 <p>Comenzamos haciendo un regresión lineal simple:</p>
 <pre class="r"><code>rl_data &lt;- data %&gt;%
   select(lineTotal, Quantity, UnitPrice, Country)
@@ -7670,11 +7593,17 @@ summary(fit2) #El coeficiente tiene el signo esperado (Positivo)</code></pre>
 ## 2 392689 5944740902  1 279824706 18484 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Rechazamos hipótesis nula por tanto el modelo ampliado es mejor.</p>
+<p>Rechazamos hipótesis nula, por tanto, el modelo ampliado es mejor.</p>
 </div>
+</div>
+<div id="parte-3-aprendizaje-estadístico-machine-learning-40100" class="section level2">
+<h2>Parte 3: Aprendizaje estadístico (Machine Learning) (40/100)</h2>
+<p>Algunos de los algoritmos aplicados en esta sección no tienen mucho sentido ya que los datos de los que disponemos estan bastante desbalanceados, por tanto, sus resultados pueden no ser correctos. En algunos casos se utilizaran submuestras y en otros se cogerán datos ligeramente modificados para que el análisis tenga algo de sentido. El objetivo de esta parte no es más que demostrar que se conocen y se saben aplicar este tipo de algoritmos. Finalmente en la última sección de esta parte se han añadido Reglas de Asociación así como una pequeña gráfica interactiva para poder observar mejor este tipo de patrones.</p>
 <div id="algoritmos-de-clasificación" class="section level4">
 <h4>Algoritmos de clasificación</h4>
-<p>Boosting: Seleccionando variables como la cantidad comprada y el precio vamos a intentar predecir desde que país nos compran.</p>
+<div id="boosting" class="section level5">
+<h5>Boosting</h5>
+<p>Seleccionando variables como la cantidad comprada y el precio vamos a intentar predecir desde que país nos compran. Hemos cogido un submuestra para evitar esperas demasiado largas al ejectuar este algoritmo.</p>
 <pre class="r"><code>#Seleccionamos una submuestra para evitar tiempos muy largos de cálculo
 df &lt;- data[1:30000,c(4,6,8)]
 df &lt;- df[sample(nrow(df)),]  # shuffle
@@ -7702,43 +7631,46 @@ p.predcat &lt;- colnames(predBST)[p.predBST]
 table(p.predcat,df.test$Country)</code></pre>
 <pre><code>##                 
 ## p.predcat        Australia Austria Bahrain Belgium Brazil Canada
-##   France                 0       0       0       0      0      0
+##   France                 0       0       0       1      0      0
 ##   Germany                0       0       0       0      0      0
-##   United Kingdom        31       7       0      53      0      0
+##   United Kingdom        35       6       0      47      0      0
 ##                 
 ## p.predcat        Channel Islands Cyprus Czech Republic Denmark  EIRE
 ##   France                       0      0              0       0     0
-##   Germany                      0      0              0       0     0
-##   United Kingdom               4     47              0       9   162
+##   Germany                      0      0              0       1     0
+##   United Kingdom               5     39              0      12   163
 ##                 
 ## p.predcat        European Community Finland France Germany Greece Iceland
-##   France                          0       0      4       4      0       0
-##   Germany                         0       0      5       4      0       0
-##   United Kingdom                  0      11    288     348      0      13
+##   France                          0       0      5       6      0       0
+##   Germany                         0       0      7       7      0       0
+##   United Kingdom                  0      11    286     356      0      11
 ##                 
 ## p.predcat        Israel Italy Japan Lebanon Lithuania Malta Netherlands Norway
 ##   France              0     0     0       0         0     0           0      0
 ##   Germany             0     0     0       0         0     0           0      0
-##   United Kingdom      0    17    33       0        11     0          27     79
+##   United Kingdom      0    22    34       0        21     0          36     65
 ##                 
 ## p.predcat        Poland Portugal   RSA Saudi Arabia Singapore Spain Sweden
 ##   France              0        0     0            0         0     0      0
-##   Germany             0        0     0            0         0     1      0
-##   United Kingdom      3       57     0            0         0    88     20
+##   Germany             0        0     0            0         0     0      0
+##   United Kingdom      4       61     0            0         0    94     19
 ##                 
 ## p.predcat        Switzerland United Arab Emirates United Kingdom Unspecified
 ##   France                   0                    0              0           0
-##   Germany                  0                    0              1           0
-##   United Kingdom          27                    0          13646           0
+##   Germany                  0                    0              0           0
+##   United Kingdom          27                    0          13619           0
 ##                 
 ## p.predcat          USA
 ##   France             0
 ##   Germany            0
 ##   United Kingdom     0</code></pre>
 <pre class="r"><code>mean(p.predcat==df.test$Country)</code></pre>
-<pre><code>## [1] 0.9102667</code></pre>
+<pre><code>## [1] 0.9087333</code></pre>
 <p>El boosting ha clasificado bien el 91% de los paises en función de sus compras. Los datos estan desbalanceados, porque si el algoritmo elige como país Reino Unido, acertará la gran mayoría de veces porque es donde más venden en general.</p>
-<p>Clasificación mediante logit:</p>
+</div>
+<div id="clasificación-mediante-logit" class="section level5">
+<h5>Clasificación mediante logit</h5>
+<p>Vamos a clasificar si nos compra de Reino Unido o de un país tercero.</p>
 <pre class="r"><code>#Como tenemos 37 paises vamos a cambiarlos por si es de Reino Unido o de fuera.
 df$Country &lt;- as.character(df$Country) #Para evitar problemas
 df$Country &lt;- ifelse(df$Country != &quot;United Kingdom&quot;, &quot;Fuera&quot;, df$Country)
@@ -7780,6 +7712,7 @@ table(glm.pred,df$Country)</code></pre>
 <pre class="r"><code>mean(glm.pred==df$Country)</code></pre>
 <pre><code>## [1] 0.9078</code></pre>
 <p>Clasificamos con una precisión de 91% pero como se ha mencionado antes, esto no es fiable ya que los datos de este dataset estan muy desbalanceados por el hecho de que donde más vende es en Reino Unido con una diferencia abismal.</p>
+</div>
 </div>
 <div id="análisis-de-componentes-principales" class="section level4">
 <h4>Análisis de componentes principales</h4>
@@ -7838,27 +7771,11 @@ clusplot(km_data,kmeans$cluster, lines = 0, shade = T, color = T, labels = 2, pl
     distinct(CustomerID, StockCode) %&gt;% 
     group_by(CustomerID) %&gt;% 
     summarise(StockCode = toString(StockCode))</code></pre>
-<pre><code>## Warning: `cols` is now required when using unnest().
-## Please use `cols = c(StockCode)`</code></pre>
 <p>Solo tendremos en cuenta cesta de compra de hasta 100 productos para evitar consumir demasiado espacio de memoria, ya que la mayoría de usuarios compra bastantes menos productos que estos.</p>
-<pre class="r"><code>a_data &lt;- a_data %&gt;% separate(StockCode, as.character(c(1:100)), &quot;,&quot;)</code></pre>
-<pre><code>## Warning: Expected 100 pieces. Additional pieces discarded in 767 rows [2, 11,
-## 13, 14, 16, 21, 28, 41, 56, 57, 67, 70, 71, 72, 76, 80, 85, 87, 92, 101, ...].</code></pre>
-<pre><code>## Warning: Expected 100 pieces. Missing pieces filled with `NA` in 3558 rows [1,
-## 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 17, 18, 19, 20, 22, 23, 24, 25, 26, ...].</code></pre>
-<pre class="r"><code>#Convertimos en una matrix sparse para ahorrar más memoria
+<pre class="r"><code>a_data &lt;- a_data %&gt;% separate(StockCode, as.character(c(1:100)), &quot;,&quot;)
+#Convertimos en una matrix sparse para ahorrar más memoria
 write.csv(a_data[,-1], &quot;DatosTransacciones.csv&quot;)
 dataset &lt;- read.transactions(&quot;DatosTransacciones.csv&quot;, header = T, sep = &quot;,&quot;, rm.duplicates = T)</code></pre>
-<pre><code>## distribution of transactions with duplicates:
-## items
-##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
-##  7 15 15 12 12 13 14 13 14 13 22 15 16 13 12  9 19 12 14 16 15 19 14 17 24 18 
-## 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 
-## 15 14 19 11 29 18 29 17 20 21 15 20 16 27 24 35 25 28 23 30 30 35 29 28 28 32 
-## 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 
-## 27 28 28 34 31 33 36 45 30 47 31 39 39 51 34 46 52 64 61 46 62 56 67 65 55 62 
-## 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 
-## 50 68 61 67 56 72 77 71 55 86 79 74 82 75 73 72 53 58 56 91</code></pre>
 <p>Ahora que tenemos listos los datos, podemos comenzar a trabajar con las reglas de asociación.</p>
 <pre class="r"><code>summary(dataset)</code></pre>
 <pre><code>## transactions as itemMatrix in sparse format with
@@ -7914,7 +7831,7 @@ rules = apriori(dataset, list(support = 0.05, confidence = 0.8))</code></pre>
 ## Absolute minimum support count: 216 
 ## 
 ## set item appearances ...[0 item(s)] done [0.00s].
-## set transactions ...[7943 item(s), 4338 transaction(s)] done [0.17s].
+## set transactions ...[7943 item(s), 4338 transaction(s)] done [0.22s].
 ## sorting and recoding items ... [153 item(s)] done [0.00s].
 ## creating transaction tree ... done [0.00s].
 ## checking subsets of size 1 2 3 done [0.00s].
@@ -7955,12 +7872,12 @@ rules = apriori(dataset, list(support = 0.05, confidence = 0.6))</code></pre>
 ## Absolute minimum support count: 216 
 ## 
 ## set item appearances ...[0 item(s)] done [0.00s].
-## set transactions ...[7943 item(s), 4338 transaction(s)] done [0.18s].
+## set transactions ...[7943 item(s), 4338 transaction(s)] done [0.19s].
 ## sorting and recoding items ... [153 item(s)] done [0.00s].
 ## creating transaction tree ... done [0.00s].
 ## checking subsets of size 1 2 3 done [0.00s].
 ## writing ... [16 rule(s)] done [0.00s].
-## creating S4 object  ... done [0.00s].</code></pre>
+## creating S4 object  ... done [0.01s].</code></pre>
 <pre class="r"><code>inspect(sort(rules, by = &quot;lift&quot;)[1:10])</code></pre>
 <pre><code>##      lhs              rhs     support    confidence coverage   lift      count
 ## [1]  {22697,22699} =&gt; {22698} 0.05025357 0.7758007  0.06477639 12.237904 218  
@@ -7990,6 +7907,22 @@ rules = apriori(dataset, list(support = 0.05, confidence = 0.6))</code></pre>
 plot(reglas, method = &quot;graph&quot;, engine = &quot;htmlwidget&quot;)</code></pre>
 <div id="htmlwidget-423967385d65972533e8" style="width:672px;height:480px;" class="visNetwork html-widget"></div>
 <script type="application/json" data-for="htmlwidget-423967385d65972533e8">{"x":{"nodes":{"id":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],"label":["22697","22699","22698","22910","22086","rule 1","rule 2","rule 3","rule 4","rule 5","rule 6","rule 7","rule 8","rule 9","rule 10"],"group":["item","item","item","item","item","rule","rule","rule","rule","rule","rule","rule","rule","rule","rule"],"value":[1,1,1,1,1,1,1,54.4285714285714,54.4285714285714,1,16.7142857142857,16.7142857142857,100,100,5.7142857142857],"color":["#CBD2FC","#CBD2FC","#CBD2FC","#CBD2FC","#CBD2FC","#EE1B1B","#EE2828","#EE3A3A","#EE3A3A","#EE7272","#EE8181","#EE8181","#EE8B8B","#EE8B8B","#EEDCDC"],"title":["22697","22699","22698","22910","22086","<B>[1]<\/B><BR><B>{22697,<BR>&nbsp;&nbsp;22699}<\/B><BR>&nbsp;&nbsp; => <B>{22698}<\/B><BR><BR>support = 0.0503<BR>confidence = 0.776<BR>coverage = 0.0648<BR>lift = 12.2<BR>count = 218<BR>order = 3","<B>[2]<\/B><BR><B>{22698,<BR>&nbsp;&nbsp;22699}<\/B><BR>&nbsp;&nbsp; => <B>{22697}<\/B><BR><BR>support = 0.0503<BR>confidence = 0.956<BR>coverage = 0.0526<BR>lift = 12<BR>count = 218<BR>order = 3","<B>[3]<\/B><BR><B>{22698}<\/B><BR>&nbsp;&nbsp; => <B>{22697}<\/B><BR><BR>support = 0.0581<BR>confidence = 0.916<BR>coverage = 0.0634<BR>lift = 11.5<BR>count = 252<BR>order = 2","<B>[4]<\/B><BR><B>{22697}<\/B><BR>&nbsp;&nbsp; => <B>{22698}<\/B><BR><BR>support = 0.0581<BR>confidence = 0.726<BR>coverage = 0.08<BR>lift = 11.5<BR>count = 252<BR>order = 2","<B>[5]<\/B><BR><B>{22697,<BR>&nbsp;&nbsp;22698}<\/B><BR>&nbsp;&nbsp; => <B>{22699}<\/B><BR><BR>support = 0.0503<BR>confidence = 0.865<BR>coverage = 0.0581<BR>lift = 9.98<BR>count = 218<BR>order = 3","<B>[6]<\/B><BR><B>{22698}<\/B><BR>&nbsp;&nbsp; => <B>{22699}<\/B><BR><BR>support = 0.0526<BR>confidence = 0.829<BR>coverage = 0.0634<BR>lift = 9.57<BR>count = 228<BR>order = 2","<B>[7]<\/B><BR><B>{22699}<\/B><BR>&nbsp;&nbsp; => <B>{22698}<\/B><BR><BR>support = 0.0526<BR>confidence = 0.606<BR>coverage = 0.0867<BR>lift = 9.57<BR>count = 228<BR>order = 2","<B>[8]<\/B><BR><B>{22697}<\/B><BR>&nbsp;&nbsp; => <B>{22699}<\/B><BR><BR>support = 0.0648<BR>confidence = 0.81<BR>coverage = 0.08<BR>lift = 9.34<BR>count = 281<BR>order = 2","<B>[9]<\/B><BR><B>{22699}<\/B><BR>&nbsp;&nbsp; => <B>{22697}<\/B><BR><BR>support = 0.0648<BR>confidence = 0.747<BR>coverage = 0.0867<BR>lift = 9.34<BR>count = 281<BR>order = 2","<B>[10]<\/B><BR><B>{22910}<\/B><BR>&nbsp;&nbsp; => <B>{22086}<\/B><BR><BR>support = 0.0509<BR>confidence = 0.628<BR>coverage = 0.0811<BR>lift = 5.71<BR>count = 221<BR>order = 2"],"shape":["box","box","box","box","box","circle","circle","circle","circle","circle","circle","circle","circle","circle","circle"],"x":[-0.165353069889258,-0.270861854375474,-0.457809413037328,-0.0234321864535758,1,-0.500406262382241,-0.803238161599964,0.0729030886452702,-0.533507127294188,-0.834709492972921,0.32171399767921,-1,0.466955438493075,0.134381346456259,0.515672642412556],"y":[-0.423487479558605,-0.685036407002891,-0.299225718033489,1,0.632729430992061,-0.873485109025705,-0.199443621355323,0.0394280819653285,0.151081566214691,-0.490111211504505,-0.365509897258794,-0.753132993282868,-0.728752997361875,-1,0.857455697890366]},"edges":{"from":[1,2,3,2,3,1,1,3,3,2,1,2,4,6,7,8,9,10,11,12,13,14,15],"to":[6,6,7,7,8,9,10,10,11,12,13,14,15,3,1,1,3,2,2,3,2,1,5],"arrows":["to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to","to"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","scaling":{"label":{"enabled":true}},"physics":false},"manipulation":{"enabled":false},"edges":{"smooth":false},"physics":{"stabilization":false},"interaction":{"hover":true}},"groups":["item","rule"],"width":null,"height":null,"idselection":{"enabled":true,"style":"width: 150px; height: 26px","useLabels":true,"main":"Select by id"},"byselection":{"enabled":false,"style":"width: 150px; height: 26px","multiple":false,"hideColor":"rgba(200,200,200,0.5)","highlight":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","igraphlayout":{"type":"square"},"tooltipStay":300,"tooltipStyle":"position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);","highlight":{"enabled":true,"hoverNearest":true,"degree":1,"algorithm":"all","hideColor":"rgba(200,200,200,0.5)","labelOnly":true},"collapse":{"enabled":false,"fit":false,"resetHighlight":true,"clusterOptions":null,"keepCoord":true,"labelSuffix":"(cluster)"}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div id="apéndice" class="section level2">
+<h2>Apéndice</h2>
+<div id="librerias" class="section level4">
+<h4>Librerias</h4>
+<p>Las librerias utilizadas en este analisis han sido:</p>
+<p><strong>Tidyverse</strong>: Es una libreria que contiene varias librerias muy útiles a la hora de manejar, transformar, seleccionar y representar datos. Se ha utilizado a lo largo de todo el trabajo.</p>
+<p><strong>Lubridate</strong>: Es una libreria que proporciona herramientas para facilitar el análisis de fechas y trabajar con datos temporales. Se ha utilizado en la sección <em>Limpieza de datos</em>.</p>
+<p><strong>Formattable</strong>: Es una libreria que proporciona herramientas para crear bonitas tablas en HTML. Se ha utilizado a lo largo de toda la parte de <em>Análisis Exploratorio (EDA)</em>.</p>
+<p><strong>Arules</strong>: Es una libreria que proporciona herramientas para poder analizar reglas de asociaciones y también contiene el algoritmo Apriori. Se ha utilizado en la sección <em>Reglas de Asociación</em>.</p>
+<p><strong>ArulesViz</strong>: Es una libreria que contiene herramientas para la visualización de las reglas de asociación del paquete anterior. Se ha utilizado al final de este documento para visualizar de manera interactivas las <em>Reglas de Asociación</em>.</p>
+<p><strong>Ggplot2</strong>: Es un subpaquete de <em>Tidyverse</em>. Se ha utilizado a lo largo de toda la parte de <em>Análisis Exploratorio (EDA)</em>.</p>
+<p><strong>Cluster</strong>: Es un paquete que contiene las herramientas básicas a la hora de analizar clusters. Se ha utilizado en la sección <em>Clustering por k-means</em>.</p>
+<p><strong>Gbm</strong>: Es un paquete que contiene herramientas para hacer regresiones con boosting. Se ha utilizado en la sección de <em>Boosting</em>.</p>
+<p><strong>ISLR</strong>: Es un paquete que contiene herramientas básicas para hacer análisis estadístico. Se ha utilizado en la sección de <em>Regresión Lineal</em>.</p>
 </div>
 </div>
 
