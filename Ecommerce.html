@@ -7631,41 +7631,41 @@ p.predcat &lt;- colnames(predBST)[p.predBST]
 table(p.predcat,df.test$Country)</code></pre>
 <pre><code>##                 
 ## p.predcat        Australia Austria Bahrain Belgium Brazil Canada
-##   France                 0       0       0       1      0      0
+##   France                 0       0       0       2      0      0
 ##   Germany                0       0       0       0      0      0
-##   United Kingdom        35       6       0      47      0      0
+##   United Kingdom        45       3       0      47      0      0
 ##                 
 ## p.predcat        Channel Islands Cyprus Czech Republic Denmark  EIRE
 ##   France                       0      0              0       0     0
-##   Germany                      0      0              0       1     0
-##   United Kingdom               5     39              0      12   163
+##   Germany                      0      0              0       0     0
+##   United Kingdom              13     39              0      10   179
 ##                 
 ## p.predcat        European Community Finland France Germany Greece Iceland
-##   France                          0       0      5       6      0       0
-##   Germany                         0       0      7       7      0       0
-##   United Kingdom                  0      11    286     356      0      11
+##   France                          0       0      9      10      0       0
+##   Germany                         0       0      0       1      0       0
+##   United Kingdom                  0       7    299     359      0      15
 ##                 
 ## p.predcat        Israel Italy Japan Lebanon Lithuania Malta Netherlands Norway
 ##   France              0     0     0       0         0     0           0      0
 ##   Germany             0     0     0       0         0     0           0      0
-##   United Kingdom      0    22    34       0        21     0          36     65
+##   United Kingdom      0    20    28       0        21     0          37     67
 ##                 
 ## p.predcat        Poland Portugal   RSA Saudi Arabia Singapore Spain Sweden
 ##   France              0        0     0            0         0     0      0
 ##   Germany             0        0     0            0         0     0      0
-##   United Kingdom      4       61     0            0         0    94     19
+##   United Kingdom      5       61     0            0         0    89     19
 ##                 
 ## p.predcat        Switzerland United Arab Emirates United Kingdom Unspecified
 ##   France                   0                    0              0           0
 ##   Germany                  0                    0              0           0
-##   United Kingdom          27                    0          13619           0
+##   United Kingdom          23                    0          13592           0
 ##                 
 ## p.predcat          USA
 ##   France             0
 ##   Germany            0
 ##   United Kingdom     0</code></pre>
 <pre class="r"><code>mean(p.predcat==df.test$Country)</code></pre>
-<pre><code>## [1] 0.9087333</code></pre>
+<pre><code>## [1] 0.9068</code></pre>
 <p>El boosting ha clasificado bien el 91% de los paises en función de sus compras. Los datos estan desbalanceados, porque si el algoritmo elige como país Reino Unido, acertará la gran mayoría de veces porque es donde más venden en general.</p>
 </div>
 <div id="clasificación-mediante-logit" class="section level5">
@@ -7763,6 +7763,7 @@ clusplot(km_data,kmeans$cluster, lines = 0, shade = T, color = T, labels = 2, pl
 </div>
 <div id="reglas-de-asociación" class="section level4">
 <h4>Reglas de asociación</h4>
+<p>Como trabajamos con una cesta de la compra, es interesante descubrir si hay determinados productos que cuando se compran implican la compra de otro. Esto puede ayudarnos a tomar decisiones de marketing a la hora de sugerir productos a nuestros clientes o su posición relativa de unos a otros en una página web. Por tanto, vamos a analizar si existen este tipo de relaciones entre nuestros productos del Ecommerce.</p>
 <p>Tenemos que tener los datos en un formato en concreto. Necesitamos los clientes en las filas y los productos adquiridos en columnas.</p>
 <pre class="r"><code>a_data &lt;- data %&gt;%
   select(CustomerID, StockCode) %&gt;%
@@ -7831,7 +7832,7 @@ rules = apriori(dataset, list(support = 0.05, confidence = 0.8))</code></pre>
 ## Absolute minimum support count: 216 
 ## 
 ## set item appearances ...[0 item(s)] done [0.00s].
-## set transactions ...[7943 item(s), 4338 transaction(s)] done [0.22s].
+## set transactions ...[7943 item(s), 4338 transaction(s)] done [0.16s].
 ## sorting and recoding items ... [153 item(s)] done [0.00s].
 ## creating transaction tree ... done [0.00s].
 ## checking subsets of size 1 2 3 done [0.00s].
@@ -7872,12 +7873,12 @@ rules = apriori(dataset, list(support = 0.05, confidence = 0.6))</code></pre>
 ## Absolute minimum support count: 216 
 ## 
 ## set item appearances ...[0 item(s)] done [0.00s].
-## set transactions ...[7943 item(s), 4338 transaction(s)] done [0.19s].
+## set transactions ...[7943 item(s), 4338 transaction(s)] done [0.36s].
 ## sorting and recoding items ... [153 item(s)] done [0.00s].
 ## creating transaction tree ... done [0.00s].
 ## checking subsets of size 1 2 3 done [0.00s].
 ## writing ... [16 rule(s)] done [0.00s].
-## creating S4 object  ... done [0.01s].</code></pre>
+## creating S4 object  ... done [0.00s].</code></pre>
 <pre class="r"><code>inspect(sort(rules, by = &quot;lift&quot;)[1:10])</code></pre>
 <pre><code>##      lhs              rhs     support    confidence coverage   lift      count
 ## [1]  {22697,22699} =&gt; {22698} 0.05025357 0.7758007  0.06477639 12.237904 218  

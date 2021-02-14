@@ -408,6 +408,8 @@ Observamos que hay dos clusters de paises, el primer cluster incluye paises como
 
 #### Reglas de asociación
 
+Como trabajamos con una cesta de la compra, es interesante descubrir si hay determinados productos que cuando se compran implican la compra de otro. Esto puede ayudarnos a tomar decisiones de marketing a la hora de sugerir productos a nuestros clientes o su posición relativa de unos a otros en una página web. Por tanto, vamos a analizar si existen este tipo de relaciones entre nuestros productos del Ecommerce.
+
 Tenemos que tener los datos en un formato en concreto. Necesitamos los clientes en las filas y los productos adquiridos en columnas.
 ```{r arules, warning = FALSE}
 a_data <- data %>%
